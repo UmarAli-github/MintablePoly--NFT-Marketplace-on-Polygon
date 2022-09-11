@@ -318,7 +318,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
             return _operatorApprovals[owner][operator];
         }
 
-    }
+    
 
     /**
      * 
@@ -547,7 +547,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
      *  */
 
 
-    function createToken(string memory _tokenURI) public returns(uint256){
+    function createERC721Token(string memory _tokenURI) public returns(uint256){
 
         _tokenIds.increment();
         uint256 current_itemId = _tokenIds.current();
@@ -557,4 +557,6 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
         setApprovalForAll(marketplaceAddress, true);
 
         return current_itemId;
+}
+
 }
