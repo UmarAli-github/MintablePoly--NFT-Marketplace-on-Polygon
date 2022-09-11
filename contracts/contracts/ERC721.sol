@@ -469,7 +469,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
 
     function burn(uint256 tokenId) public {
 
-            require(_isApprovedOrOwner(msg.sender, tokenId), "ERR-721: caller is not token owner nor approved");
+            require(_isApprovedOrOwner(msg.sender, tokenId), "ERR-721: caller is not token owner nor approved.");
             _burn(tokenId);
         }
 
