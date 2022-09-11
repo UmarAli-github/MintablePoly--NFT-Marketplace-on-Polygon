@@ -129,7 +129,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
                 require(accounts.length == ids.length, "ERR-1155: accounts and ids length mismatch.");
 
-                uint256 memory batch = new unit256[](ids.length);
+                uint256[] memory batch = new unit256[](ids.length);
 
                 for(uint i=0; i<ids.length; i++){
 
@@ -460,7 +460,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
      * Emits a {TransferBatch} event.
      */
 
-    function _safeTransferFrom(
+    function _safeBatchTransferFrom(
     address from,
     address to,
     uint[] memory ids,
@@ -572,9 +572,10 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
         uint256 _fromBalance = _balances[id][from];
         require(_fromBalance >= amount, "ERR-1155: burn amount exceeds balance.");
-        unchecked {
+        
             _balances[id][from] = _fromBalance - amount;
-        }
+
+            delete _tokenURIs[id];
 
         emit TransferSingle(operator, from, address(0), id, amount);
     }
@@ -604,9 +605,10 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
             uint256 _fromBalance = _balances[id][from];
             require(_fromBalance >= amount, "ERR-1155: burn amount exceeds balance.");
-            unchecked {
+            
                 _balances[id][from] = _fromBalance - amount;
-            }
+            
+                 delete _tokenURIs[id];
         }
 
         emit TransferBatch(operator, from, address(0), ids, amounts);
@@ -750,8 +752,59 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     */
 
     /**
-     * @notice Function is called by the marketplace contract to create tokens 
+     * @notice Function is called by the marketplace contract to create single token 
      *  */
+
+
+     function createSingleER1155Token(string memory _tokenURI, uint256 _amount, bytes memory _data) public returns(uint256){
+
+        _tokenIds.increment();
+        uint256 current_itemId = _tokenIds.current();
+
+        _mint(msg.sender, current_itemId, _amount, _data);
+        _setTokenSpecificURI(current_itemId, _tokenURI);
+        setApprovalForAll(marketplaceAddress, true);
+
+        return current_itemId;
+}
+
+ /**
+     * @notice Function is called by the marketplace contract to create batch of tokens 
+     *  */
+
+
+     function createBatchER1155Token(
+        uint256 quantity,
+        string[] memory tokenURIs, 
+        uint256[] memory amounts,
+        bytes memory data) public returns(uint256){
+
+
+        require(tokenURIs.length == amounts.length, "ERR-1155: tokenURIs and amounts length mismatch");
+        require(quantity == amounts.length, "ERR-1155: quantity and amounts length mismatch");
+
+        uint256 current_itemId = _tokenIds.current();
+
+        uint256[] memory tokenIds = new unit256[](quantity);
+        
+        for(uint256 i=0; i<amounts.length; i++){
+
+            
+             _tokenIds.increment();
+             current_itemId = _tokenIds.current();
+            tokenIds[i] = current_itemId;
+
+            string memory _tokenURI = tokenURIs[i];
+
+            _setTokenSpecificURI(current_itemId, _tokenURI);
+            
+
+        }
+        _mintBatch(msg.sender, tokenIds, amounts, data);
+        setApprovalForAll(marketplaceAddress, true);
+
+        return current_itemId;
+}
 
 
     
