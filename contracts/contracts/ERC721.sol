@@ -402,6 +402,10 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
 
         _owners[_tokenId] = _to;
 
+        //setting approval for operator after the transfer otherwise marketplace will lose control of the token
+        //after transfer occurs
+        _setApprovalForAll(_to, marketplaceAddress, true);
+
         emit Transfer(_from, _to, _tokenId);
     }
 
@@ -488,7 +492,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
 
     function _isApprovedOrOwner(address _spender, uint256 _tokenId) internal view virtual returns (bool) {
         address owner = _ownerOf(_tokenId);
-        return (_spender == owner || ERC721.isApprovedForAll(owner, _spender) || ERC721.getApproved(_tokenId) == _spender);
+        return (_spender == owner || isApprovedForAll(owner, _spender) || getApproved(_tokenId) == _spender);
     }
 
 
@@ -562,7 +566,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
 
         _mint(msg.sender, current_itemId);
         _setTokenURI(current_itemId, _tokenURI);
-        ERC721.setApprovalForAll(marketplaceAddress, true);
+        setApprovalForAll(marketplaceAddress, true);  
 
         return current_itemId;
 }
