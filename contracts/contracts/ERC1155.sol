@@ -32,6 +32,8 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     //Counter for token Ids to prevent overflows
     Counters.Counter private _tokenIds;
 
+    //Address of marketplace that will be the approved operator of Tokens
+    address marketplaceAddress;
 
 
     //Mapping to store uint256 tokenId to a mapping to store address account to uint256 balance
@@ -51,11 +53,13 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     /**
      * @dev constructor calls setURI method to store uri that represents the collection.
      *  
+     * stores marketplace address
      */
 
-    constructor(string memory _uri){
+    constructor(string memory _uri, address _market){
     
            _setURI(_uri);
+           marketplaceAddress = _market;
     
     }
 
