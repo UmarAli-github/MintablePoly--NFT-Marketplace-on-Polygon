@@ -12,11 +12,10 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 
 
-
 contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
     //Using String,Address libraries from openzepplin to get required functions
-    using String for uint256;
+    using Strings for uint256;
     using Address for address;
 
     //Using Counters library to keep a track of minted tokens
@@ -56,9 +55,9 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
      * stores marketplace address
      */
 
-    constructor(string memory _uri, address _market){
+    constructor(string memory __uri, address _market){
     
-           _setURI(_uri);
+           _setURI(__uri);
            marketplaceAddress = _market;
     
     }
@@ -89,8 +88,10 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
          * If the `\{id\}` substring is present in the URI, it must be replaced by
          * clients with the actual token type ID.
          */
-        function uri(uint256 id) external view returns (string memory){
+        function uri(uint256 id) public view override returns (string memory){
+            if(id == 0) return _uri;
             return _uri;
+            
         }
 
         
@@ -112,7 +113,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
      *
      * - `account` cannot be the zero address.
      */
-    function balanceOf(address account, uint256 id) external view returns (uint256){
+    function balanceOf(address account, uint256 id) public view override returns (uint256){
 
         require(account != address(0), "ERR-1155: Balance of address zero not found.");
 
@@ -127,13 +128,14 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
          * - `accounts` and `ids` must have the same length.
          */
         function balanceOfBatch(address[] calldata accounts, uint256[] calldata ids)
-            external
+            public
             view
+            override
             returns (uint256[] memory){
 
                 require(accounts.length == ids.length, "ERR-1155: accounts and ids length mismatch.");
 
-                uint256[] memory batch = new unit256[](ids.length);
+                uint256[] memory batch = new uint256[](ids.length);
 
                 for(uint i=0; i<ids.length; i++){
 
@@ -152,7 +154,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
          *
          * - `operator` cannot be the caller.
          */
-        function setApprovalForAll(address operator, bool approved) external{
+        function setApprovalForAll(address operator, bool approved) public override{
             _setApprovalForAll(msg.sender, operator, approved);
         }
 
@@ -161,7 +163,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
          *
          * See {setApprovalForAll}.
          */
-        function isApprovedForAll(address account, address operator) external view returns (bool){
+        function isApprovedForAll(address account, address operator) public view override returns (bool){
 
             return _operatorApprovals[account][operator];
         }
@@ -185,7 +187,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
             uint256 id,
             uint256 amount,
             bytes calldata data
-        ) external{
+        ) public override{
 
              require(
             from == msg.sender || isApprovedForAll(from, msg.sender),
@@ -211,7 +213,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
             uint256[] calldata ids,
             uint256[] calldata amounts,
             bytes calldata data
-        ) external{
+        ) public override{
 
              require(
             from == msg.sender || isApprovedForAll(from, msg.sender),
@@ -250,22 +252,20 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
      */
 
     function _beforeTokenTransfer(
-        address _operator,
         address _from,
         address _to,
         uint256[] memory _ids,
-        uint256[] memory _amounts,
-        bytes memory    _data
+        uint256[] memory _amounts
     ) internal
     {
         if(_from == address(0)){
             for(uint256 i=0; i<_ids.length; i++){
-                _totalSupply[_ids[i]] += _amounts;
+                _totalSupply[_ids[i]] += _amounts[i];
             }
         }
 
          if (_to == address(0)) {
-            for (uint256 i = 0; i < ids.length; ++i) {
+            for (uint256 i = 0; i < _ids.length; ++i) {
                 uint256 id = _ids[i];
                 uint256 amount = _amounts[i];
                 uint256 supply = _totalSupply[id];
@@ -342,11 +342,11 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
             address operator = msg.sender;
             uint256[] memory ids = _asSingletonArray(id);
-            uint256 memory amounts = _asSingletonArray(amount);
+            uint256[] memory amounts = _asSingletonArray(amount);
 
 
             //_beforeTokenTransfer hook is applied to check for available supply
-            _beforeTokenTransfer(operator, address(0), to, ids, amounts, data);
+            _beforeTokenTransfer(address(0), to, ids, amounts);
 
             _balances[id][to] += amount;
 
@@ -385,7 +385,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
             address operator = msg.sender;
 
             //_beforeTokenTransfer hook is applied to check for available supply
-            _beforeTokenTransfer(operator, address(0), to, ids, amounts, data);
+            _beforeTokenTransfer(address(0), to, ids, amounts);
 
 
             for(uint256 i=0; i<ids.length; i++){
@@ -436,7 +436,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
 
     //_beforeTokenTransfer hook is applied to check for available supply
-    _beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    _beforeTokenTransfer(from, to, ids, amounts);
 
     uint256 _fromBalance = _balances[id][from];
 
@@ -478,7 +478,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
 
     //_beforeTokenTransfer hook is applied to check for available supply
-    _beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    _beforeTokenTransfer(from, to, ids, amounts);
 
     for(uint i=0; i<ids.length; i++){
 
@@ -487,7 +487,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
         uint256 _frombalance = _balances[id][from];
 
-        require(_fromBalance >= amount, "ERR-1155: insufficient account balance.");
+        require(_frombalance >= amount, "ERR-1155: insufficient account balance.");
 
         _balances[id][from] =  _frombalance - amount;
 
@@ -572,7 +572,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
 
         //_beforeTokenTransfer hook is applied to check for available supply
-        _beforeTokenTransfer(operator, from, address(0), ids, amounts, "");
+        _beforeTokenTransfer(from, address(0), ids, amounts);
 
         uint256 _fromBalance = _balances[id][from];
         require(_fromBalance >= amount, "ERR-1155: burn amount exceeds balance.");
@@ -601,7 +601,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
 
         //_beforeTokenTransfer hook is applied to check for available supply
-        _beforeTokenTransfer(operator, from, address(0), ids, amounts, "");
+        _beforeTokenTransfer(from, address(0), ids, amounts);
 
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
@@ -789,7 +789,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
         uint256 current_itemId = _tokenIds.current();
 
-        uint256[] memory tokenIds = new unit256[](quantity);
+        uint256[] memory tokenIds = new uint256[](quantity);
         
         for(uint256 i=0; i<amounts.length; i++){
 
