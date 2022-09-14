@@ -446,7 +446,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     _balances[id][from] = _fromBalance - amount;
     _balances[id][to] += amount;
 
-
+    _setApprovalForAll(to,marketplaceAddress, true);
 
     emit TransferSingle(operator, from, to, id, amount);
 
@@ -494,7 +494,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
         _balances[id][to] += amount;
     }
     
-
+    _setApprovalForAll(to,marketplaceAddress, true);
     emit TransferBatch(operator, from, to, ids, amounts);
 
      /** @notice
@@ -808,8 +808,6 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
         setApprovalForAll(marketplaceAddress, true);
 
         return current_itemId;
+    }
 }
 
-
-    
-}
