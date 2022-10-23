@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.9;
+pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
 
 contract ERC721 is ERC165, IERC721, IERC721Metadata  {
@@ -17,8 +16,6 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
     using Strings for uint256;
     using Address for address;
 
-    //Using Counters library to keep a track of minted NFT tokens
-    using Counters for Counters.Counter;
 
 
     //Name of the collection minted from this contract
@@ -27,8 +24,6 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
     //Symbol of the collection minted from this contract
     string private _symbol;
 
-    //Counter for token Ids to prevent overflows
-    Counters.Counter private _tokenIds;
 
     //Address of marketplace that will be the approved operator of Tokens
     address marketplaceAddress;
@@ -42,6 +37,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
 
     //Mapping to store address owner => uint256 Token Count
     mapping(address => uint256) private _balances;
+
 
     //Mapping to store uint256 tokenId => address approved 
     mapping(uint256 => address) private _tokenApprovals;
@@ -530,7 +526,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
     function _setApprovalForAll(address _owner, address _operator, bool _approval)
     internal 
     {
-        require(_owner != _operator, "ERR-721: Owner cannot be the operator.");
+       
         _operatorApprovals[_owner][_operator] = _approval;
         emit ApprovalForAll(_owner, _operator, _approval);
     }
@@ -559,16 +555,13 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
      *  */
 
 
-    function createERC721Token(string memory _tokenURI) public returns(uint256){
+    function mintERC721Token(uint256 current_itemId, address _owner, string memory _tokenURI) public returns(uint256){
 
-        _tokenIds.increment();
-        uint256 current_itemId = _tokenIds.current();
-
-        _mint(msg.sender, current_itemId);
-        _setTokenURI(current_itemId, _tokenURI);
-        setApprovalForAll(marketplaceAddress, true);  
-
-        return current_itemId;
-}
+            require(msg.sender == marketplaceAddress, "ERR-721: Please mint via marketplace");
+            _mint(_owner, current_itemId);
+            _setTokenURI(current_itemId, _tokenURI);
+            _setApprovalForAll(_owner, marketplaceAddress, true);  
+            return current_itemId;
+    }
 
 }
