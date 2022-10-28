@@ -557,7 +557,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
 
     function mintERC721Token(uint256 current_itemId, address _owner, string memory _tokenURI) public returns(uint256){
 
-            require(msg.sender == marketplaceAddress, "ERR-721: Please mint via marketplace");
+            require(msg.sender == marketplaceAddress, "ERR-721: Tokens can only be minted through our Marketplace.");
             _mint(_owner, current_itemId);
             _setTokenURI(current_itemId, _tokenURI);
             _setApprovalForAll(_owner, marketplaceAddress, true);  
