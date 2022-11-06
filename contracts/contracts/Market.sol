@@ -116,6 +116,16 @@ contract Market is ReentrancyGuard {
         _erc721tokenIds.increment();
         uint256 current_itemId = _erc721tokenIds.current();
 
+        emit NFT_MarketItem_Created(
+        current_itemId,
+        msg.sender,
+        address(0),
+        msg.sender,
+        0,
+        false
+
+    );
+
         return ERC721(nftContract).mintERC721Token(current_itemId, msg.sender, tokenURI);
     }
 
@@ -135,6 +145,18 @@ contract Market is ReentrancyGuard {
 
         _erc1155tokenIds.increment();
         uint256 current_itemId = _erc1155tokenIds.current();
+
+
+        emit sNFT_MarketItem_Created(
+        current_itemId,
+        msg.sender,
+        address(0),
+        msg.sender,
+        0,
+        amount
+
+    );
+
 
         return ERC1155(nftContract).createSupply(msg.sender, tokenURI, current_itemId, amount, "0x");
     }
