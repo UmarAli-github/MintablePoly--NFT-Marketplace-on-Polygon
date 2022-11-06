@@ -1,31 +1,48 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
-const hre = require("hardhat");
+const { ethers } = require("hardhat");
+
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
 
-  const lockedAmount = hre.ethers.utils.parseEther("1");
+  const [deployer] = await ethers.getSigners();
 
-  const Lock = await hre.ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
 
-  await lock.deployed();
+  const marketInstance = await ethers.getContractFactory("Market");
 
-  console.log(
-    `Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
-  );
+  const market = await marketInstance.deploy();
+
+  await market.deployed();
+
+  console.log("Market Address", market.address);
+
+
+  
+  const erc721ContractInstance = await ethers.getContractFactory("ERC721");
+
+  const erc721Contract = await erc721ContractInstance.deploy("MintablePolyNFT", "MPLYNFT", market.address);
+
+  await erc721Contract.deployed();
+
+  console.log("ERC-721 Contract Address", erc721Contract.address);
+
+
+
+  const erc1155ContractInstance = await ethers.getContractFactory("ERC1155");
+
+  const erc1155Contract = await erc1155ContractInstance.deploy("", market.address);
+
+  await erc1155Contract.deployed();
+
+  console.log("ERC-1155 Contract Address", erc1155Contract.address);
+
+
+
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
+main()
+.then(() => {
+  process.exit(0);
+})
+.catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
