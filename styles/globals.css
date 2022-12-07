@@ -1,3 +1,81 @@
+@import url("https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@600&display=swap');
+
+
+body {
+    font-family: 'League Spartan', sans-serif;
+    
+}
+
+.gradient-bg-main {
+    
+    background: rgb(242,232,252);
+    background: linear-gradient(180deg, rgba(242,232,252,1) 0%, rgba(161,144,245,1) 50%, rgba(254,181,197,1) 100%);
+}
+
+  .gradient-bg-sec {
+    
+    background: rgb(242,232,252);
+    background: linear-gradient(360deg, rgba(161,144,245,1) 20%, rgba(254,181,197,1) 90%);
+  }
+
+  .gradient-btn {
+    
+    background: rgb(242,232,252);
+    background: linear-gradient(90deg, rgba(161,144,245,1) 20%, rgba(254,181,197,1) 90%);
+  }
+
+  .gradient-hvr-btn {
+    
+    background: rgb(242,232,252);
+    background: linear-gradient(90deg, rgba(161,144,245,1) 20%, rgba(254,181,197,1) 90%);
+  }
+
+  .text-gradient {
+  background-color: #fff;
+  background-image: radial-gradient(at 4% 36%, rgba(254,181,197,1) 0, transparent 53%), radial-gradient(at 100% 60%, rgba(254,181,197,1) 0, transparent 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.white-glassmorphism {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+
+.blue-glassmorphism {
+  background: rgb(39, 51, 89, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.blue-shadow {
+  background: rgba(220, 233, 44, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(255, 251, 0, 0.8);
+
+}
+
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
 @tailwind base;
 @tailwind component;
 @tailwind utilities;
