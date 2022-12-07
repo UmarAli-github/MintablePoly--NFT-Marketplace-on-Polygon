@@ -72,7 +72,7 @@ describe("Marketplace Contract", function(){
 
             const {alice, market, erc721Contract} = await loadFixture(deployFixture);
 
-            
+            console.log("alice", alice.address);
             
             await expect(market.connect(alice).createERC721Token(erc721Contract.address, "http://www.example.com"))
             .to
@@ -89,7 +89,7 @@ describe("Marketplace Contract", function(){
 
             const {bob, market, erc1155Contract} = await loadFixture(deployFixture);
 
-            
+            console.log("bob", bob.address);
             
             await expect(market.connect(bob).createERC1155Token(erc1155Contract.address, "http://www.example.com", 10))
             .to

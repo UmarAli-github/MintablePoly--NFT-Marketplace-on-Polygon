@@ -46,6 +46,8 @@ describe("ERC1155 Token Contract", function(){
         it("Should be able to mint ERC-1155 tokens through marketplace address", async function(){
 
             const {contract, market, alice} =  await loadFixture(deployFixture);
+
+            console.log(market.address);
             
             await contract.connect(market).createSupply(alice.address, "http://www.example.com", 1, 10, "0x");
 
