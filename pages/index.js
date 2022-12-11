@@ -80,6 +80,7 @@ export default function Home() {
       if(!name || !description || !fileUrl) return alert("Please enter details !");
 
       type = "erc721";
+      supply = 1;
 
       const data = JSON.stringify({
         name,description, image: fileUrl,type,supply
