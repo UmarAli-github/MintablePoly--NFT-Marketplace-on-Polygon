@@ -15,7 +15,7 @@ import {
 
 import { PROJECT_ID, API_KEY_SECRET } from '../ipfs-secret';
 
-import { abi } from '../contracts/artifacts/contracts/Market.sol/Market.json';
+import { abi } from '../Market.json';
 
 import { create as ipfsClient } from 'ipfs-http-client';
 
