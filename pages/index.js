@@ -13,7 +13,7 @@ import {
   seminftAaddress
 } from '../config';
 
-import { PROJECT_ID, API_KEY_SECRET } from '../ipfs-secret';
+
 
 import { abi } from '../Market.json';
 
@@ -27,7 +27,7 @@ import NFT from '../components/NFT';
 import Loader from '../components/Loader';
 
 const auth =
-    'Basic ' + Buffer.from(PROJECT_ID + ':' + API_KEY_SECRET).toString('base64');
+    'Basic ' + Buffer.from(process.env.NEXT_PUBLIC_PROJECT_ID + ':' + process.env.NEXT_PUBLIC_API_KEY_SECRET).toString('base64');
 
     const client = ipfsClient({
     host: 'ipfs.infura.io',
