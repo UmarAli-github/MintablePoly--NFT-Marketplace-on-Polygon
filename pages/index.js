@@ -297,7 +297,7 @@ export default function Home() {
 
     {account && (
       <div id='mint-section' className="h-full gradient-bg-sec">
-      <div class="flex justify-center">
+      <div className="flex justify-center">
 
           {!formType &&(
             <div className='w-1/2 flex flex-col mt-[5%] p-12 bg-[#ffffff] rounded-2xl shadow-2xl'>
