@@ -8,13 +8,20 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 
-contract ERC721 is ERC165, IERC721, IERC721Metadata  {
+
+contract ERC721 is ERC165, IERC721, IERC721Metadata, ReentrancyGuard  {
 
     //Using String,Address libraries from openzepplin to get required functions
     using Strings for uint256;
     using Address for address;
+    
+
+    //Using Counters library to keep a track of minted NFT tokens
+    using Counters for Counters.Counter;
 
 
 
@@ -26,8 +33,10 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
 
 
     //Address of marketplace that will be the approved operator of Tokens
-    address marketplaceAddress;
+    address immutable MARKETPLACE;
 
+    //Counter for token Ids
+    Counters.Counter private tokenId;
 
     //Mapping to store uint256 tokenId => string tokenURI 
     mapping(uint256 => string) private _tokenURIs;
@@ -38,6 +47,9 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
     //Mapping to store address owner => uint256 Token Count
     mapping(address => uint256) private _balances;
 
+    //Mapping to store uint256 token Id => address  minter
+
+    mapping(uint256 => address) private _minters;
 
     //Mapping to store uint256 tokenId => address approved 
     mapping(uint256 => address) private _tokenApprovals;
@@ -51,7 +63,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
         _name = __name;
         _symbol = __symbol;
 
-        marketplaceAddress = _market;
+        MARKETPLACE = _market;
     }
 
 
@@ -118,10 +130,6 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
 
             
         }
-    /**
-     * @notice baseURI() can be implemented if specific URI pathname is intended in future 
-     * */
-
     
         /**
          * @notice Set `_tokenURI` as the tokenURI of `tokenId`.
@@ -132,6 +140,19 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
         
         function _setTokenURI(uint256 _tokenId, string memory _tokenURI) internal {
             require(_exists(_tokenId), "ERR-721: cannot set URI of non-existent token");
+            _tokenURIs[_tokenId] = _tokenURI;
+        }
+
+
+         /**
+         * @notice update `_tokenURI` by the minter of the token.
+         *
+         *
+         */
+
+        function updateTokenURI(uint256 _tokenId, string memory _tokenURI) public nonReentrant {
+            require(_exists(_tokenId), "ERR-721: cannot set URI of non-existent token");
+            require(msg.sender == _minters[_tokenId], "ERR-721: only minter can update the URI");
             _tokenURIs[_tokenId] = _tokenURI;
         }    
 
@@ -172,7 +193,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
         override
         returns (address owner)
         {
-            
+            require(_exists(tokenId), "ERR-721: non-existent token");
             address _owner = _ownerOf(tokenId);
             require(_owner != address(0), "ERR-721: invalid token ID.");
             return _owner;
@@ -400,7 +421,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
 
         //setting approval for operator after the transfer otherwise marketplace will lose control of the token
         //after transfer occurs
-        _setApprovalForAll(_to, marketplaceAddress, true);
+        _setApprovalForAll(_to, MARKETPLACE, true);
 
         emit Transfer(_from, _to, _tokenId);
     }
@@ -475,9 +496,10 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
         emit Transfer(owner, address(0), _tokenId);    
     }
 
-    function burn(uint256 tokenId) public {
+    function burn(uint256 tokenId) public nonReentrant {
 
-            require(_isApprovedOrOwner(msg.sender, tokenId), "ERR-721: caller is not token owner nor approved.");
+            require( msg.sender == _minters[tokenId], "ERR-721: caller is not the minter.");
+            require(msg.sender == _owners[tokenId], "ERR-721: caller is not the owner.");
             _burn(tokenId);
         }
 
@@ -551,17 +573,96 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata  {
     */
 
     /**
-     * @notice Function is called by the marketplace contract to create tokens 
+     * @notice Function is called to create tokens 
      *  */
 
 
-    function mintERC721Token(uint256 current_itemId, address _owner, string memory _tokenURI) public returns(uint256){
+    function createToken(string memory _tokenURI) external nonReentrant returns(uint256){
 
-            require(msg.sender == marketplaceAddress, "ERR-721: Tokens can only be minted through our Marketplace.");
-            _mint(_owner, current_itemId);
-            _setTokenURI(current_itemId, _tokenURI);
-            _setApprovalForAll(_owner, marketplaceAddress, true);  
-            return current_itemId;
+            tokenId.increment();
+            
+            uint256 current_tokenId = tokenId.current();
+            
+            _mint(msg.sender, current_tokenId);
+            _setTokenURI(current_tokenId, _tokenURI);
+
+            _minters[current_tokenId] = msg.sender;
+
+            _setApprovalForAll(msg.sender, MARKETPLACE, true);  
+            return current_tokenId;
+    }
+
+    /**
+     * @notice Function is called to view tokens owned by caller 
+     *  */
+
+
+    function getOwnedTokens() public view returns(uint256[] memory){
+
+        uint256 existingTokens = tokenId.current();
+        uint256 ownerBalance = balanceOf(msg.sender);
+
+        uint256[] memory idsOfOwnedTokens = new uint256[](ownerBalance); 
+
+        uint256 index = 0;
+        uint256 id;
+
+        for(uint256 i;i<existingTokens;++i){
+
+            id = i+1;
+
+            if(ownerOf(id) != msg.sender) continue;
+
+            idsOfOwnedTokens[index] = id;
+            ++index; 
+        }
+
+        return idsOfOwnedTokens;
+
+    }
+
+    /**
+     * @notice Function is called to view minter of `Token Id` 
+     *  */
+
+    function mintedBy(uint256 _tokenId) public view returns(address) {
+        return _minters[_tokenId];
+    }
+
+
+    /**
+     * @notice Function is called to view tokens minted by caller 
+     *  */
+
+
+    function getMintedToken() public view returns(uint256[] memory) {
+
+        uint256 existingTokens = tokenId.current();
+
+        uint256 numberOfMintedTokens = 0;
+
+        for(uint256 i; i<existingTokens; ++i){
+            uint256 id = i+1;
+
+            if(_minters[id] != msg.sender) continue;
+
+            ++numberOfMintedTokens;
+        } 
+
+        uint256[] memory mintedTokensArray = new uint[](numberOfMintedTokens);
+
+        uint256 index = 0;
+        for(uint256 i; i<existingTokens; ++i){
+
+            uint256 id = i+1;
+
+            if(_minters[id] != msg.sender) continue;
+
+            mintedTokensArray[index] = id;
+            ++index;
+        }
+
+        return mintedTokensArray;
     }
 
 }

@@ -9,20 +9,23 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 
 
-contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
+contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
 
     //Using String,Address libraries from openzepplin to get required functions
     using Strings for uint256;
     using Address for address;
-
-    //Using Counters library to keep a track of minted tokens
+    
+    //Using Counters library to keep a track of SFTs
     using Counters for Counters.Counter;
 
 
-
+    
+    //Counter for token Ids
+    Counters.Counter private tokenId;
 
 
     //URI for all the token types that will be substituted based on token id
@@ -31,7 +34,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     
 
     //Address of marketplace that will be the approved operator of Tokens
-    address marketplaceAddress;
+    address immutable MARKET;
 
 
     //Mapping to store uint256 tokenId to a mapping to store address account to uint256 balance
@@ -40,11 +43,14 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     //Mapping to store address account to a mapping to store address operator to bool approval
     mapping(address =>mapping(address=>bool)) private _operatorApprovals;
 
-    //Mapping to store uint256 tokenId to uint256 supply of the specific token
+    //Mapping to store uint256 tokenId to uint256 supply of the  token
     mapping(uint256 => uint256) private _totalSupply;
 
     //Mapping to store uint256 tokenId to string tokenURIs
     mapping(uint256 => string) private _tokenURIs;
+
+    //mapping to store uint256 tokenId to address minters
+    mapping(uint256 => address) private _minters;
 
 
 
@@ -57,7 +63,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     constructor(string memory __uri, address _market){
     
            _setURI(__uri);
-           marketplaceAddress = _market;
+           MARKET = _market;
     
     }
 
@@ -136,7 +142,9 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
 
                 uint256[] memory batch = new uint256[](ids.length);
 
-                for(uint i=0; i<ids.length; i++){
+                uint256 length = ids.length;
+
+                for(uint i; i<length; i++){
 
                     batch[i] = balanceOf(accounts[i],ids[i]);
                 }
@@ -258,13 +266,15 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     ) internal
     {
         if(_from == address(0)){
-            for(uint256 i=0; i<_ids.length; i++){
+            uint256 length = _ids.length;
+            for(uint256 i; i<length; ++i){
                 _totalSupply[_ids[i]] += _amounts[i];
             }
         }
 
          if (_to == address(0)) {
-            for (uint256 i = 0; i < _ids.length; ++i) {
+            uint256 length = _ids.length;
+            for (uint256 i; i < length; ++i) {
                 uint256 id = _ids[i];
                 uint256 amount = _amounts[i];
                 uint256 supply = _totalSupply[id];
@@ -297,20 +307,32 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
      * - if `_tokenURIs[tokenId]` is NOT set, and if the parents do not have a
      *   uri value set, then the result is empty.
      */
-    function tokenSpecificURI(uint256 tokenId) public view returns (string memory) {
+    function tokenURI(uint256 tokenId) public view returns (string memory) {
         string memory tokenURI = _tokenURIs[tokenId];
 
-        // If token URI is set, return token-specific tokenURI .
+        // If token URI is set, return token- tokenURI .
         return bytes(tokenURI).length > 0 ? tokenURI : uri(tokenId);
     }
 
     /**
      * @notice Sets `tokenURI` as the tokenURI of `tokenId`.
      */
-    function _setTokenSpecificURI(uint256 tokenId, string memory tokenURI) internal {
+    function _setTokenURI(uint256 tokenId, string memory tokenURI) internal {
+        require(exists(tokenId), "ERR-1155: cannot set URI of non-existent token");
         _tokenURIs[tokenId] = tokenURI;
         emit URI(_tokenURIs[tokenId], tokenId);
     }
+
+
+    function updateTokenURI(uint tokenId, string memory tokenURI) public nonReentrant {
+        require(exists(tokenId), "ERR-1155: cannot set URI of non-existent token");
+        require(msg.sender == _minters[tokenId], "ERR-1155: only minter can update the URI");
+        require(_balances[tokenId][msg.sender] == _totalSupply[tokenId], "ERR-1155: entire supply does not belong to minter");
+
+        _tokenURIs[tokenId] = tokenURI;
+
+        emit URI(_tokenURIs[tokenId], tokenId);
+    } 
 
       /**
      * 
@@ -445,7 +467,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     _balances[id][from] = _fromBalance - amount;
     _balances[id][to] += amount;
 
-    _setApprovalForAll(to,marketplaceAddress, true);
+    _setApprovalForAll(to,MARKET, true);
 
     emit TransferSingle(operator, from, to, id, amount);
 
@@ -479,7 +501,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     //_beforeTokenTransfer hook is applied to check for available supply
     _beforeTokenTransfer(from, to, ids, amounts);
 
-    for(uint i=0; i<ids.length; i++){
+    for(uint i; i<ids.length; i++){
 
         uint id = ids[i];
         uint amount = amounts[i];
@@ -493,7 +515,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
         _balances[id][to] += amount;
     }
     
-    _setApprovalForAll(to,marketplaceAddress, true);
+    _setApprovalForAll(to,MARKET, true);
     emit TransferBatch(operator, from, to, ids, amounts);
 
      /** @notice
@@ -525,11 +547,8 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
         address account,
         uint256 id,
         uint256 value
-    ) public virtual {
-        require(
-            account == msg.sender || isApprovedForAll(account, msg.sender),
-            "ERR-1155: caller is not token owner nor approved"
-        );
+    ) public nonReentrant virtual {
+        require( msg.sender == _minters[id] && account == _minters[id], "ERR-1155: caller is not the minter.");
 
         _burn(account, id, value);
     }
@@ -542,11 +561,13 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
         address account,
         uint256[] memory ids,
         uint256[] memory values
-    ) public virtual {
-        require(
-            account == msg.sender || isApprovedForAll(account, msg.sender),
-            "ERR-1155: caller is not token owner nor approved"
-        );
+    ) public nonReentrant virtual {
+        require(ids.length == values.length, "ERR-1155: ids and values length mismatch.");
+
+        uint256 length = ids.length;
+        for(uint i; i<length; i++){
+            require( msg.sender == _minters[ids[i]] && account == _minters[ids[i]], "ERR-1155: caller is not the minter.");
+        }
 
         _burnBatch(account, ids, values);
     }
@@ -564,6 +585,8 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
         uint256 amount
     ) internal {
         require(from != address(0), "ERR-1155: Cannot burn from the zero address.");
+
+        require(_balances[id][from] == amount, "ERR-1155: Burn amount exceeds the owned supply");
 
         address operator = msg.sender;
         uint256[] memory ids = _asSingletonArray(id);
@@ -595,6 +618,13 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
     ) internal {
         require(from != address(0), "ERR-1155: Cannot burn from the zero address");
         require(ids.length == amounts.length, "ERR-1155: ids and amounts length mismatch");
+
+        uint256 length = ids.length;
+
+        for(uint256 i;i<length;++i){
+            require(_balances[ids[i]][from] == amounts[i], "ERR-1155: Burn amount exceeds the owned supply");
+        }
+
 
         address operator = msg.sender;
 
@@ -759,15 +789,76 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI  {
      *  */
 
 
-     function createSupply(address owner, string memory _tokenURI,  uint256 current_itemId, uint256 _amount, bytes memory _data) public returns(uint256){
-         require(msg.sender == marketplaceAddress, "ERR1155: Tokens can only be minted through our Marketplace.");
-
-        _mint(owner, current_itemId, _amount, _data);
-        _setTokenSpecificURI(current_itemId, _tokenURI);
-        _setApprovalForAll(owner,marketplaceAddress, true);
+     function createTokenSupply(string memory _tokenURI, uint256 _amount, bytes memory _data) public returns(uint256){
+         tokenId.increment();
+         uint256 current_itemId = tokenId.current();
+        _mint(msg.sender, current_itemId, _amount, _data);
+        _setTokenURI(current_itemId, _tokenURI);
+        _setApprovalForAll(msg.sender,MARKET, true);
 
         return current_itemId;
 }
+
+    function getOwnedTokens() public view returns(uint256[] memory) {
+
+        uint256 numberOfExistingTokens = tokenId.current();
+
+        uint256 numberOfOwnedTokens = 0;
+
+        for(uint256 i; i < numberOfExistingTokens; ++i){
+            if(_balances[i+1][msg.sender] > 0){
+                numberOfOwnedTokens++;
+            }
+        }
+
+        uint256[] memory ownedTokens = new uint256[](numberOfOwnedTokens);
+    
+        uint256 index = 0;
+        uint256 id;
+
+        for(uint256 i; i < numberOfExistingTokens; ++i){
+            id = i+1;
+            if(_balances[id][msg.sender] == 0) continue;
+                ownedTokens[index] = id;
+                ++index;
+        }
+
+        return ownedTokens;
+        
+    }
+
+    function mintedBy(uint256 _id) public view returns(address){
+        return _minters[_id];
+    }
+
+    function getMintedTokens() public view returns(uint256[] memory){
+        uint256 numberOfExistingTokens = tokenId.current();
+
+        uint256 numberOfMintedTokens = 0;
+
+        for(uint256 i; i < numberOfExistingTokens; ++i){
+            if(_minters[i+1] == msg.sender){
+                ++numberOfMintedTokens;
+            }
+        }
+
+        uint256[] memory mintedTokens = new uint256[](numberOfMintedTokens);
+    
+        uint256 index = 0;
+        uint256 id;
+
+        for(uint256 i; i < numberOfExistingTokens; ++i){
+            
+            id = i+1;
+            if(_minters[id] != msg.sender) continue;
+                mintedTokens[index] = id;
+                ++index;
+        }
+
+        return mintedTokens;
+    }
+
+    
 
 }
 
