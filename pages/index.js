@@ -13,9 +13,9 @@ import {
   seminftAaddress
 } from '../config';
 
-import { PROJECT_ID, API_KEY_SECRET } from '../ipfs-secret';
 
-import { abi } from '../contracts/artifacts/contracts/Market.sol/Market.json';
+
+import { abi } from '../Market.json';
 
 import { create as ipfsClient } from 'ipfs-http-client';
 
@@ -24,9 +24,10 @@ import { MetamaskContext } from '../context/MetamaskContext';
 import Footer from '../components/Footer';
 import Receipt from '../components/Receipt';
 import NFT from '../components/NFT';
+import Loader from '../components/Loader';
 
 const auth =
-    'Basic ' + Buffer.from(PROJECT_ID + ':' + API_KEY_SECRET).toString('base64');
+    'Basic ' + Buffer.from(process.env.NEXT_PUBLIC_PROJECT_ID + ':' + process.env.NEXT_PUBLIC_API_KEY_SECRET).toString('base64');
 
     const client = ipfsClient({
     host: 'ipfs.infura.io',
@@ -48,11 +49,12 @@ export default function Home() {
    const [Tx, setTx] = useState(false)
    const [receipt, setReceipt] = useState({});
    const [addr, setAddr] = useState('0x0000000000000000000000000000000000000000');
-
+   const [loading, setLoading] = useState(false);
   
     async function changeHandler(e) {
 
       const file = e.target.files[0];
+      setLoading(true);
   
       try{
   
@@ -65,8 +67,10 @@ export default function Home() {
         const url = `https://ipfs.io/ipfs/${added.path}`;
   
         setFileUrl(url);
+        setLoading(false);
       }
       catch(error){
+        setLoading(false);
         console.log(error);
       }
      
@@ -293,7 +297,7 @@ export default function Home() {
 
     {account && (
       <div id='mint-section' className="h-full gradient-bg-sec">
-      <div class="flex justify-center">
+      <div className="flex justify-center">
 
           {!formType &&(
             <div className='w-1/2 flex flex-col mt-[5%] p-12 bg-[#ffffff] rounded-2xl shadow-2xl'>
@@ -358,12 +362,17 @@ export default function Home() {
                   className='mt-4 border rounded p-4 ring-2 ring-purple-500'
                   onChange={e => updateFormInput({...formInput, description: e.target.value })}/>
       
-                  <input 
+                  <div className='relative'>
+                  {loading? (<Loader/>):
+                  (
+                    <input 
                   type='file'
                   name='Asset'
-                  disabled={Tx?true:false}
                   className='my-4'
+                  disabled={Tx?true:false}
                   onChange={changeHandler}/>
+                  )}
+                  </div>
       
                   {
                     fileUrl && (
@@ -416,12 +425,17 @@ export default function Home() {
                   className='mt-8 border rounded p-4 ring-2 ring-purple-500'
                   onChange={e => updateFormInput({...formInput, description: e.target.value })}/>
       
-                  <input 
+                  <div className='relative'>
+                  {loading? (<Loader/>):
+                  (
+                    <input 
                   type='file'
                   name='Asset'
                   className='my-4'
                   disabled={Tx?true:false}
                   onChange={changeHandler}/>
+                  )}
+                  </div>
       
                   {
                     fileUrl && (
