@@ -2,45 +2,49 @@
 
 pragma solidity ^0.8.9; 
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ERC721.sol";
 import "./ERC1155.sol";
 
-contract Market is ReentrancyGuard {
+contract Market is ReentrancyGuard, Ownable {
     
     //Using Counters library to keep a track of minted NFT tokens
     using Counters for Counters.Counter;
 
 
     //Counter for token Ids to prevent overflows
-    Counters.Counter private _erc721tokenIds;
-    Counters.Counter private _erc721ItemsSold;
+    Counters.Counter private nft_Id;
 
-    Counters.Counter private _erc1155tokenIds;
+    Counters.Counter private sft_Id;
+
+    
 
 
     //Listing fee will be the commission that market will charge users for selling their Items;
-    uint256 private _listingFee = 0.005 ether;
+    uint256 private _listingFee = 0.2 ether;
 
-    //Owner of the marketplace will be the deployer
-    address payable owner;
 
 
     //Market items will be the items being auctioned on the marketplace
     struct NFT_MarketItem {
-        address payable minter;
+        uint256 NFT_MarketItemId;
+        address nftContract;
         uint256 tokenId;
+        address payable minter;
         address payable seller;
         address payable owner;
         uint256 price;
         bool sold;
     }
 
-    struct sNFT_MarketItem {
-        address payable minter;
+    struct SFT_MarketItem {
+        uint256 SFT_MarketItemId;
+        address sftContract;
         uint256 tokenId;
+        address payable minter;
         address payable seller;
         address payable owner;
         uint256 price;
@@ -51,45 +55,60 @@ contract Market is ReentrancyGuard {
     //Mapping to store uint256 tokenId to struct MarketItems
     mapping(uint256 => NFT_MarketItem) private idToNFTs;
 
-    mapping(uint256 => sNFT_MarketItem) private idTosNFTs;
+    mapping(uint256 => SFT_MarketItem) private idToSFTs;
 
 
     //Events for market items creation
     event NFT_MarketItem_Created(
+        
+        uint256 indexed NFT_MarketItemId,
+        address nftContract,
         uint256 indexed tokenId,
-        address indexed minter,
+        address minter,
         address seller,
-        address owner,
+        address indexed owner,
         uint256 price,
         bool sold
 
     );
 
-    event sNFT_MarketItem_Created(
+    event SFT_MarketItem_Created(
+        
+        uint256 indexed SFT_MarketItemId,
+        address sftContract,
         uint256 indexed tokenId,
-        address indexed minter,
+        address minter,
         address seller,
-        address owner,
+        address indexed owner,
         uint256 price,
         uint256 supply
 
     );
 
-    
-    //Constructor sets deployer as owner
+    /**
+     * 
+     * @dev modifiers to check only owner can list items 
+     */
 
-    constructor(){
-        owner = payable(msg.sender);
+    modifier onlyOwnerOfNFT(address _nft, uint256 _tokenId){
+        
+        address _owner = ERC721(_nft).ownerOf(_tokenId);
+        require(msg.sender == _owner, "Only owner can perform this action.");
+        _;
     }
 
-
+    modifier onlyOwnerOfSFT(address _sft, uint256 _tokenId){
+        
+        uint balance = ERC1155(_sft).balanceOf(msg.sender,_tokenId);
+        require(balance > 0 , "Only owner can perform this action.");
+        _;
+    }
 
     /**
      * @dev this function lets the owner to update listing fee
      */
 
-    function updateListingFee(uint256 fee) public payable {
-        require(owner == msg.sender, "ERR: Only owner can update the listing fee.");
+    function updateListingFee(uint256 fee) public payable onlyOwner {
         _listingFee = fee;
     }
 
@@ -102,96 +121,125 @@ contract Market is ReentrancyGuard {
         return _listingFee;
     }
 
+    
     /**
-     * @dev function lets user mint their ERC721 Token
+     * @dev function lets user to list item for sale and transfers it's ownership to marketplace
      */
 
-    function createERC721Token(
-        address nftContract, 
-        string memory tokenURI
-        )
-        public nonReentrant returns(uint256)
-        {
-
-        _erc721tokenIds.increment();
-        uint256 current_itemId = _erc721tokenIds.current();
-
-        emit NFT_MarketItem_Created(
-        current_itemId,
-        msg.sender,
-        address(0),
-        msg.sender,
-        0,
-        false
-
-    );
-
-        return ERC721(nftContract).mintERC721Token(current_itemId, msg.sender, tokenURI);
-    }
-
-
-    /**
-     * @dev function lets user mint their supply of ERC1155 Token
-     */
-
-
-    function createERC1155Token(
-        address nftContract, 
-        string memory tokenURI,
-        uint256 amount
-        )
-        public nonReentrant returns(uint256)
-        {
-
-        _erc1155tokenIds.increment();
-        uint256 current_itemId = _erc1155tokenIds.current();
-
-
-        emit sNFT_MarketItem_Created(
-        current_itemId,
-        msg.sender,
-        address(0),
-        msg.sender,
-        0,
-        amount
-
-    );
-
-
-        return ERC1155(nftContract).createSupply(msg.sender, tokenURI, current_itemId, amount, "0x");
-    }
-    /**
-     * @dev function lets user create market items for sale
-     
-
-    function create_NFT_MarketItem(
-        address nftContract,
-        uint256 tokenId,
-        uint256 price
-    )public {
-      require(price > 0, "Please set price to atleast 1 wei");
+    function listNFT(
+        address _nftContract,
+        uint256 _tokenId,
+        uint256 _price
+    )public
+     payable
+     nonReentrant
+     onlyOwnerOfNFT(_nftContract, _tokenId)
+     returns(uint256){
+      
+      require(_price > 0, "Price should atleast be 1 wei");
       require(msg.value == _listingFee, "Please pay the listing fee");
 
-      idToNFTs[tokenId] =  NFT_MarketItem(
-        tokenId,
+      ERC721 nft = ERC721(_nftContract);
+      
+      
+      nft_Id.increment();
+      uint current = nft_Id.current();
+      
+      
+
+      address _minter = nft.mintedBy(_tokenId);
+
+      idToNFTs[current] = NFT_MarketItem(
+        current,
+        _nftContract,
+        _tokenId,
+        payable(_minter),
         payable(msg.sender),
         payable(address(this)),
-        price,
+        _price,
         false
       );
 
-      IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
+      nft.safeTransferFrom(msg.sender, address(this), _tokenId);
+
+
       emit NFT_MarketItem_Created(
-        tokenId,
-        msg.sender,
-        address(this),
-        price,
-        false
-      );
+            current, 
+            _nftContract, 
+            _tokenId, 
+            _minter, 
+            msg.sender, 
+            address(0), 
+            _price, 
+            false
+        );
+
+
+        return current;
     }
 
-    //Implement a way of checking the minted erc721 items that are not up for sale 
+    /**
+     * @dev function lets user to unlist NFT for sale and refund it's lisitng fee to owner
+     */
+
+    function unlistNFT(address _nftContract, uint _marketitemId) public nonReentrant returns(bool sent) {
+
+        require(_marketitemId > 0, "ID should be greater than 0.");
+        require(idToNFTs[_marketitemId].seller == msg.sender, "Only seller can unlist items.");
+
+        idToNFTs[_marketitemId].seller = payable(address(0));
+        idToNFTs[_marketitemId].owner = payable(msg.sender);
+
+        uint tokenId = idToNFTs[_marketitemId].tokenId;
+
+        ERC721(_nftContract).safeTransferFrom(address(this), msg.sender, tokenId);
+
+        (sent, ) = payable(msg.sender).call{value: _listingFee}("");
+
+    }
 
 
-*/
-}
+    /**
+     * @dev function lets user to check whether NFT is up-for-sale
+     */
+
+    function getMarketplaceitemByNFT(uint tokenId) public view returns(NFT_MarketItem memory, bool){
+
+        require(tokenId > 0, "ID should be greater than 0.");
+
+        uint itemsCount = nft_Id.current();
+        
+        for(uint i; i<itemsCount; ++i){
+            
+            NFT_MarketItem memory item = idToNFTs[i+1];
+
+            if(item.tokenId != tokenId) continue;
+            return (item, true);
+        }
+
+        NFT_MarketItem memory _item;
+        return(_item, false);
+    }
+
+
+    /**
+     * @dev Creates nft sale by transfering msg.sender money to the seller and NFT token from the
+     * marketplace to the msg.sender. It also sends the listingFee to the marketplace owner.
+     */
+    function nftSale(address nftContractAddress, uint256 marketItemId) public payable nonReentrant {
+        
+        uint256 price = NFT_MarketItem[marketItemId].price;
+        uint256 tokenId = NFT_MarketItem[marketItemId].tokenId;
+        require(msg.value == price, "Please pay the asking price for the NFT.");
+
+        NFT_MarketItem[marketItemId].owner = payable(msg.sender);
+        NFT_MarketItem[marketItemId].sold = true;
+
+        NFT_MarketItem[marketItemId].seller.transfer(msg.value);
+        ERC721(nftContractAddress).safeTransferFrom(address(this), msg.sender, tokenId);
+
+        payable(owner()).transfer(_listingFee);
+    }
+
+
+}//Implement a way of checking the minted erc721 items that are not up for sale 
