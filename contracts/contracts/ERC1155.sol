@@ -602,6 +602,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
             _balances[id][from] = _fromBalance - amount;
 
             if(_totalSupply[id] == 0){
+                delete _minters[id];
                 delete _tokenURIs[id];
             }
 
@@ -644,6 +645,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
                 _balances[id][from] = _fromBalance - amount;
             
                 if(_totalSupply[id] == 0){
+                delete _minters[id];
                 delete _tokenURIs[id];
             }
         }
