@@ -368,7 +368,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
 
             //_beforeTokenTransfer hook is applied to check for available supply
             _beforeTokenTransfer(address(0), to, ids, amounts);
-
+            _minters[id] = to;
             _balances[id][to] += amount;
 
             
@@ -586,7 +586,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
     ) internal {
         require(from != address(0), "ERR-1155: Cannot burn from the zero address.");
 
-        require(_balances[id][from] == amount, "ERR-1155: Burn amount exceeds the owned supply");
+        require(_balances[id][from] >= amount, "ERR-1155: Burn amount exceeds the owned supply");
 
         address operator = msg.sender;
         uint256[] memory ids = _asSingletonArray(id);
@@ -601,7 +601,9 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
         
             _balances[id][from] = _fromBalance - amount;
 
-            delete _tokenURIs[id];
+            if(_totalSupply[id] == 0){
+                delete _tokenURIs[id];
+            }
 
         emit TransferSingle(operator, from, address(0), id, amount);
     }
@@ -641,7 +643,9 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
             
                 _balances[id][from] = _fromBalance - amount;
             
-                 delete _tokenURIs[id];
+                if(_totalSupply[id] == 0){
+                delete _tokenURIs[id];
+            }
         }
 
         emit TransferBatch(operator, from, address(0), ids, amounts);
@@ -800,7 +804,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
         return current_itemId;
 }
 
-    function getOwnedTokens() public view returns(uint256[] memory) {
+    function getOwnedTokens() public view returns(uint256[] memory ownedTokens, uint256[] memory tokenBalance) {
 
         uint256 numberOfExistingTokens = tokenId.current();
 
@@ -812,7 +816,9 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
             }
         }
 
-        uint256[] memory ownedTokens = new uint256[](numberOfOwnedTokens);
+        ownedTokens = new uint256[](numberOfOwnedTokens);
+
+        tokenBalance = new uint256[](numberOfOwnedTokens);
     
         uint256 index = 0;
         uint256 id;
@@ -821,10 +827,9 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
             id = i+1;
             if(_balances[id][msg.sender] == 0) continue;
                 ownedTokens[index] = id;
+                tokenBalance[index] = _balances[id][msg.sender];
                 ++index;
         }
-
-        return ownedTokens;
         
     }
 
@@ -832,7 +837,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
         return _minters[_id];
     }
 
-    function getMintedTokens() public view returns(uint256[] memory){
+    function getMintedTokens() public view returns(uint256[] memory mintedTokens, uint256[] memory tokenBalance){
         uint256 numberOfExistingTokens = tokenId.current();
 
         uint256 numberOfMintedTokens = 0;
@@ -843,8 +848,9 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
             }
         }
 
-        uint256[] memory mintedTokens = new uint256[](numberOfMintedTokens);
-    
+        mintedTokens = new uint256[](numberOfMintedTokens);
+        tokenBalance = new uint256[](numberOfMintedTokens);
+
         uint256 index = 0;
         uint256 id;
 
@@ -853,10 +859,10 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
             id = i+1;
             if(_minters[id] != msg.sender) continue;
                 mintedTokens[index] = id;
+                tokenBalance[index] = _balances[id][msg.sender];
                 ++index;
         }
 
-        return mintedTokens;
     }
 
     
