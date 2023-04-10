@@ -2,28 +2,22 @@ import {ethers} from 'ethers';
 import { useState,useContext, useEffect } from 'react';
 
 
-import { Jazzicon } from '@ukstv/jazzicon-react';
-import { SiMetro } from 'react-icons/si'
+
 import { AiFillPlayCircle } from 'react-icons/ai';
-import { IoIosArrowBack } from 'react-icons/io'
+import { IoIosArrowBack } from 'react-icons/io';
 
-import { 
-  marketplaceaddress,
+import {
   nftAddress,
-  seminftAaddress
+  sftAddress
 } from '../config';
-
-
-
-import { abi } from '../Market.json';
 
 import { create as ipfsClient } from 'ipfs-http-client';
 
 import { MetamaskContext } from '../context/MetamaskContext';
 
-import Footer from '../components/Footer';
+import Footer from '../components/Footer/Footer';
 import Receipt from '../components/Receipt';
-import NFT from '../components/NFT';
+import {FullSizeNFT} from '../components/Cards/NFT';
 import Loader from '../components/Loader';
 
 const auth =
@@ -41,14 +35,13 @@ const auth =
 
 export default function Home() {
 
-  const { connectWallet, account} = useContext(MetamaskContext);
+  const {account, nftContract, sftContract} = useContext(MetamaskContext);
 
    const [fileUrl, setFileUrl] = useState(null);
    const [formType, setFormType] = useState(null);
    const [formInput, updateFormInput] = useState({name: '', description: '', type: '', supply:1 })
    const [Tx, setTx] = useState(false)
    const [receipt, setReceipt] = useState({});
-   const [addr, setAddr] = useState('0x0000000000000000000000000000000000000000');
    const [loading, setLoading] = useState(false);
   
     async function changeHandler(e) {
@@ -83,7 +76,7 @@ export default function Home() {
   
       if(!name || !description || !fileUrl) return alert("Please enter details !");
 
-      type = "erc721";
+      type = "ERC721";
       supply = 1;
 
       const data = JSON.stringify({
@@ -105,14 +98,8 @@ export default function Home() {
     async function createNFT(url){
 
       try {
-        
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-      const signer = provider.getSigner()
-
-      let contract = new ethers.Contract(marketplaceaddress, abi, signer);
-
-      let transaction = await contract.createERC721Token(nftAddress, url);
+      
+      let transaction = await nftContract.createToken(url);
 
       let tx = await transaction.wait();
 
@@ -137,7 +124,7 @@ export default function Home() {
       }
     }
 
-    async function saveSemiNFT(){
+    async function saveSFT(){
       // saves the semi NFT on ipfs
   
       let {name, description, type, supply} = formInput;
@@ -146,7 +133,7 @@ export default function Home() {
     console.log(supply);
       if(supply==0) return alert("You cannot mint SFT with 0 supply");
 
-      type = "erc1155";
+      type = "ERC1155";
 
       const data = JSON.stringify({
         name,description, image: fileUrl,type,supply
@@ -157,24 +144,18 @@ export default function Home() {
         const added = await client.add(data);
 
         const url = `https://ipfs.io/ipfs/${added.path}`;
-        createSemiNFT(url, supply);
+        createSFT(url, supply);
         
       } catch (error) {
           console.log(error);
       }
     }
   
-    async function createSemiNFT(url, supply){
+    async function createSFT(url, supply){
 
       try {
 
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-      const signer = provider.getSigner()
-
-      let contract = new ethers.Contract(marketplaceaddress, abi, signer);
-
-      let transaction = await contract.createERC1155Token(seminftAaddress, url, supply);
+      let transaction = await sftContract.createTokenSupply(url, supply, "0x");
 
       let tx = await transaction.wait();
 
@@ -208,65 +189,21 @@ export default function Home() {
       setTx(false);
     }
 
-    function snipAddress(){
-
-      
-      //setAddr(account);
-
-    }
 
     useEffect(() => {
-      //snipAddress();
-    },[])
-   
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      console.log(window.ethereum);
+      console.log(provider);
+      console.log(signer);
+      console.log(signer._address);
+    })
 
   return (
     <>
      <div className="h-screen gradient-bg-main">
-      <nav className='flex flex-row justify-between p-6'>
-        <div className='flex flex-row items-center gap-4'>
-        
-        <SiMetro className='w-12 h-12' style={{color:"#2c2740"}}/>
-        <p className='text-xl text-[#2c2740] tracking-wider'>MintablePoly</p>  
-        
-        </div> 
-      <div className='flex flex-row items-center justify-end gap-14'>
-      
-      
-      {
-      account? 
-      (
-      <div className='flex w-[150px] h-[50px] bg-[#a292f5] hover:bg-[#8344e4] justify-center items-center rounded-2xl'>
-        <a
-          className='text-xl text-white tracking-wider'
-          href='#mint-section'
-        >
-          Create
-        </a>
-      </div>
-      )
-      :
-      (
-      <div className='flex w-[150px] h-[50px] bg-[#a292f5] hover:bg-[#2c2740] justify-center items-center rounded-2xl'>
-        <button
-        className='text-xl text-white tracking-wider'
-
-        onClick={connectWallet}
-        >
-          Connect
-          </button>
-      </div>
-      )
-      }
-
-      <h1 className='text-xl text-[#505050] tracking-wider'>Explore</h1>
-
-      <div className='w-[50px] h-[50px]'>
-      <Jazzicon address={addr} />
-      </div>
-
-      </div>
-      </nav>
 
       <div className='flex flex-row items-center'>
       
@@ -289,7 +226,11 @@ export default function Home() {
       </div>
       </div>
 
-      <NFT/>
+      <FullSizeNFT 
+      id="3749"
+      price="100"
+      uri="https://ipfs.io/ipfs/QmQpxqZ6hPnx8ofapPVgbg9JAh7S9oh3fNYvWwU7okdCU8"
+      />
       
       </div>
       
@@ -445,7 +386,7 @@ export default function Home() {
                   
                   <button 
                   
-                  onClick={saveSemiNFT}
+                  onClick={saveSFT}
                   disabled={Tx?true:false}
                   className="font-bold text-2xl tracking-widest mt-4 bg-black hover:bg-purple-500 hover:scale-105 text-white rounded p-4 shadow-lg"      
                   >Mint</button>

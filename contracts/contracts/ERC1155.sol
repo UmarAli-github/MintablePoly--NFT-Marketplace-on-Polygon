@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol";
@@ -664,12 +664,13 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
      * Emits an {ApprovalForAll} event.
      */
 
+
     function _setApprovalForAll(
         address owner,
         address operator,
         bool approval
     ) internal {
-        
+        require(owner != operator || operator == MARKET, "ERC-1155: approve to caller");
         _operatorApprovals[owner][operator] = approval;
         emit ApprovalForAll(owner, operator, approval);
 
