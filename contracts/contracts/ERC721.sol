@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.9;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
@@ -145,7 +145,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata, ReentrancyGuard  {
 
 
          /**
-         * @notice update `_tokenURI` by the minter of the token.
+         * @notice update `_tokenURI` by the minter of the token. Add a check to see ownership
          *
          *
          */
@@ -153,6 +153,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata, ReentrancyGuard  {
         function updateTokenURI(uint256 _tokenId, string memory _tokenURI) public nonReentrant {
             require(_exists(_tokenId), "ERR-721: cannot set URI of non-existent token");
             require(msg.sender == _minters[_tokenId], "ERR-721: only minter can update the URI");
+            require(msg.sender == _owners[_tokenId], "ERR-721: no longer the owner");
             _tokenURIs[_tokenId] = _tokenURI;
         }    
 
@@ -489,6 +490,8 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata, ReentrancyGuard  {
 
         delete _owners[_tokenId];
 
+        delete _minters[_tokenId];
+
         if (bytes(_tokenURIs[_tokenId]).length != 0) {
                 delete _tokenURIs[_tokenId];
             }
@@ -548,7 +551,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata, ReentrancyGuard  {
     function _setApprovalForAll(address _owner, address _operator, bool _approval)
     internal 
     {
-       
+        require(_owner != _operator || _operator == MARKETPLACE, "ERC721: approve to caller");
         _operatorApprovals[_owner][_operator] = _approval;
         emit ApprovalForAll(_owner, _operator, _approval);
     }
@@ -611,7 +614,7 @@ contract ERC721 is ERC165, IERC721, IERC721Metadata, ReentrancyGuard  {
 
             id = i+1;
 
-            if(ownerOf(id) != msg.sender) continue;
+            if(_ownerOf(id) != msg.sender) continue;
 
             idsOfOwnedTokens[index] = id;
             ++index; 
