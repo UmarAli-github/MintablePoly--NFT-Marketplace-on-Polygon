@@ -6,11 +6,6 @@ import { useState,useContext, useEffect } from 'react';
 import { AiFillPlayCircle } from 'react-icons/ai';
 import { IoIosArrowBack } from 'react-icons/io';
 
-import {
-  nftAddress,
-  sftAddress
-} from '../config';
-
 import { create as ipfsClient } from 'ipfs-http-client';
 
 import { MetamaskContext } from '../context/MetamaskContext';
