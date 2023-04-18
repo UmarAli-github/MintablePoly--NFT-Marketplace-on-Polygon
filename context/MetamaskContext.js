@@ -92,13 +92,13 @@ export const MetamaskProvider = ({children}) => {
           if(wallet._metamask.isUnlocked()){
     
            
-            const chainId = await wallet.request({method: 'eth_chainId'});
+       //     const chainId = await wallet.request({method: 'eth_chainId'});
             
             //Mumbai test net selection
-            if(chainId !== "0x13881"){
-              alert("Please change network to Mumbai.");
-              addPolygon();
-            }
+         //   if(chainId !== "0x13881"){
+           //   alert("Please change network to Mumbai.");
+             // addPolygon();
+            //}
     
               const accounts = await wallet.request({method:"eth_accounts"});
     
