@@ -1,16 +1,15 @@
-import {useState, useContext} from 'react';
+import {useContext} from 'react';
 import Link from 'next/link';
-import { Jazzicon } from '@ukstv/jazzicon-react';
 import { SiMetro } from 'react-icons/si'
 import { MetamaskContext } from '../../context/MetamaskContext';
 
 import { useRouter } from 'next/router';
 
+import Blockie from '../Blockies';
+
 
 export default function Navbar(props) {
 
-    const [addr, setAddr] = useState('0x0000000000000000000000000000000000000000');
-   
     const router = useRouter();
 
     const { connectWallet, account} = useContext(MetamaskContext);
@@ -45,7 +44,7 @@ export default function Navbar(props) {
         <a className='text-xl text-[#505050] tracking-wider'>Explore</a>
       </Link>
       <div className='w-[50px] h-[50px]'>
-      <Jazzicon address={addr}/>
+      <Blockie address={account}/>
       </div>
       </div>
       
