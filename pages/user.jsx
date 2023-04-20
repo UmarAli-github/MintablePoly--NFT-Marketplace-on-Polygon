@@ -28,7 +28,11 @@ export default function User() {
 
   const [mintedNfts, setMintedNfts] = useState([]);
   const [ownedNfts, setOwnedNfts] = useState([]);
-  const [listedNfts, setListedNfts] = useState([]);  
+  const [listedNfts, setListedNfts] = useState([]);
+  
+  const [mintedSfts, setMintedSfts] = useState([]);
+  const [ownedSfts, setOwnedSfts] = useState([]);
+  const [listedSfts, setListedSfts] = useState([]);
 
   const router = useRouter();
 
@@ -38,10 +42,54 @@ export default function User() {
     if(!account){
       router.push("/");
     }
+   },[])
+
+   useEffect(() => {
 
     loadMintedNfts();
-   },[])
+    loadMintedSfts();
    
+  },[showMinted])
+   
+
+async function loadMintedSfts(){
+
+  try {
+
+    setLoading(true);
+
+    let data = await sftContract.getMintedTokens();
+
+    const items = await Promise.all(data.map( async i => {
+
+      const uri = await sftContract.tokenURI(i);
+
+      const metadata = await axios.get(uri);
+
+      const balance = await sftContract.balanceOf(account, i);
+
+      let item = {
+        id: parseInt(i._hex, 16),
+        name: metadata.data.name,
+        image: metadata.data.image,
+        balance: parseInt(balance._hex, 16),
+        type: metadata.data.type
+      }
+
+      return item;
+    } ))
+
+    setMintedSfts(prev => items);
+    setLoading(false);
+    console.log(mintedSfts);
+
+
+    
+  } catch (error) {
+    setLoading(false);
+    console.log(error);
+  }
+}   
 
  async function loadMintedNfts(){
 
@@ -56,8 +104,6 @@ export default function User() {
       const uri = await nftContract.tokenURI(i);
 
       const metadata = await axios.get(uri);
-
-      console.log(metadata);
  
       
       let item = {
@@ -84,6 +130,40 @@ export default function User() {
   }
 
 
+ }
+
+ async function loadOwnedSfts(){
+
+  try {
+
+    const data = await sftContract.getOwnedTokens();
+
+    const items = await Promise.all(data.map( async i => {
+      
+      const uri = await sftContract.tokenURI(i);
+
+      const metadata = await axios.get(uri);
+
+      const balance = await sftContract.balanceOf(account, i);
+
+      let item = {
+        id: parseInt(i._hex, 16),
+        image: metadata.data.image,
+        name: metadata.data.name,
+        balance: parseInt(balance._hex, 16),
+        type: metadata.data.type
+      }
+
+      return item;
+
+    }))
+
+    console.log("Owned: ", items);
+    
+  } catch (error) {
+    
+    console.log(error);
+  }
  }
  
  async function loadOwnedNfts(){
@@ -177,6 +257,7 @@ export default function User() {
  useEffect(() => {
 
   loadOwnedNfts();
+  loadOwnedSfts();
  },[showOwned])
 
 

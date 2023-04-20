@@ -806,7 +806,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
         return current_itemId;
 }
 
-    function getOwnedTokens() public view returns(uint256[] memory ownedTokens, uint256[] memory tokenBalance) {
+    function getOwnedTokens() public view returns(uint256[] memory ownedTokens) {
 
         uint256 numberOfExistingTokens = tokenId.current();
 
@@ -819,9 +819,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
         }
 
         ownedTokens = new uint256[](numberOfOwnedTokens);
-
-        tokenBalance = new uint256[](numberOfOwnedTokens);
-    
+  
         uint256 index = 0;
         uint256 id;
 
@@ -829,7 +827,6 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
             id = i+1;
             if(_balances[id][msg.sender] == 0) continue;
                 ownedTokens[index] = id;
-                tokenBalance[index] = _balances[id][msg.sender];
                 ++index;
         }
         
@@ -839,7 +836,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
         return _minters[_id];
     }
 
-    function getMintedTokens() public view returns(uint256[] memory mintedTokens, uint256[] memory tokenBalance){
+    function getMintedTokens() public view returns(uint256[] memory mintedTokens){
         uint256 numberOfExistingTokens = tokenId.current();
 
         uint256 numberOfMintedTokens = 0;
@@ -851,8 +848,7 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
         }
 
         mintedTokens = new uint256[](numberOfMintedTokens);
-        tokenBalance = new uint256[](numberOfMintedTokens);
-
+        
         uint256 index = 0;
         uint256 id;
 
@@ -861,7 +857,6 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
             id = i+1;
             if(_minters[id] != msg.sender) continue;
                 mintedTokens[index] = id;
-                tokenBalance[index] = _balances[id][msg.sender];
                 ++index;
         }
 
