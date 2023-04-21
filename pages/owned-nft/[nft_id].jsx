@@ -69,7 +69,7 @@ export default function OwnedNFTPage() {
             <span className='text-9xl'><h1>{nft.name}</h1></span>
             <span className='text-4xl text-gray-600'><h1>{nft.type}</h1></span>
             <span className='text-md'>{nft.desc}</span>
-            <SocialShare imageUrl={nft.image}/>
+            <SocialShare imageUrl={nft.image} type={721}/>
             </div>
             </div>
             <div className='flex flex-row pb-4 gap-6 mx-auto'>

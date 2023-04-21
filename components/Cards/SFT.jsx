@@ -28,6 +28,10 @@ export function FullSizeSFT(props){
 export function ShowcaseSFT(props){
 
     return(
+        <div className='relative'>
+        <div className="h-16 w-16 bg-yellow-500 text-white flex items-center justify-center rounded-full absolute top-0 right-0">
+        {props.balance}
+        </div>
         <div className='flex mx-4 w-[350px] h-[350px] blue-shadow justify-center'>
             <div className={`w-full h-full bg-cover flex flex-col justify-between rounded-3xl shadow-2xl`}
                  style={{backgroundImage: `url(${props.uri})`}}
@@ -45,6 +49,7 @@ export function ShowcaseSFT(props){
             
             </div>
         </div>
+        </div>
     )
 }
 
@@ -54,10 +59,15 @@ export function MintedSFT(props){
     const router = useRouter();
 
     return(
+    <div className='relative'>
+        <div className="h-8 w-8 bg-yellow-500 text-white flex items-center justify-center rounded-full absolute top-0 right-0">
+        {props.balance}
+        </div>
         <div className='flex mx-auto w-[150px] h-[150px] blue-shadow justify-center'
 
         onClick={() => router.push(`/minted-sft/${props.id}`)}
         >
+    
             <div className={`w-full h-full bg-cover flex flex-col justify-between rounded-xl shadow-2xl`}
                  style={{backgroundImage: `url(${props.uri})`}}
             >
@@ -73,6 +83,7 @@ export function MintedSFT(props){
             
             </div>
         </div>
+    </div>
     )
 }
 
@@ -82,6 +93,10 @@ export function OwnedSFT(props){
     const router = useRouter();
 
     return(
+        <div className='relative'>
+        <div className="h-8 w-8 bg-yellow-500 text-white flex items-center justify-center rounded-full absolute top-0 right-0">
+        {props.balance}
+        </div>
         <div className='flex mx-auto w-[150px] h-[150px] blue-shadow justify-center'
 
         onClick={() => router.push(`/owned-sft/${props.id}`)}
@@ -101,6 +116,7 @@ export function OwnedSFT(props){
             
             </div>
         </div>
+     </div>
     )
 }
 

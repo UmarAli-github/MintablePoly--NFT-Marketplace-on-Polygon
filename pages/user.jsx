@@ -12,6 +12,8 @@ import Loader from '../components/Loader';
 
 import { MintedNFT, OwnedNFT, ListedNFT } from '../components/Cards/NFT';
 
+import { MintedSFT, OwnedSFT, ListedSFT } from '../components/Cards/SFT';
+
 
 
 export default function User() {
@@ -81,7 +83,6 @@ async function loadMintedSfts(){
 
     setMintedSfts(prev => items);
     setLoading(false);
-    console.log(mintedSfts);
 
 
     
@@ -158,7 +159,7 @@ async function loadMintedSfts(){
 
     }))
 
-    console.log("Owned: ", items);
+    setOwnedSfts(prev => items)
     
   } catch (error) {
     
@@ -283,7 +284,7 @@ async function loadMintedSfts(){
             'w-5 h-5 rounded-full bg-white text-center text-black'
             :
             'w-5 h-5 rounded-full bg-black text-center text-white'}>
-              {mintedNfts.length}
+              {mintedNfts.length + mintedSfts.length}
               </div>
             </div>
           
@@ -296,7 +297,7 @@ async function loadMintedSfts(){
             'w-5 h-5 rounded-full bg-white text-center text-black'
             :
             'w-5 h-5 rounded-full bg-black text-center text-white'}>
-              {ownedNfts.length}
+              {ownedNfts.length + ownedSfts.length}
               </div>
             </div>
             
@@ -311,7 +312,7 @@ async function loadMintedSfts(){
             'w-5 h-5 rounded-full bg-white text-center text-black'
             :
             'w-5 h-5 rounded-full bg-black text-center text-white'}>
-              {listedNfts.length}
+              {listedNfts.length + listedSfts.length}
               </div>
             </div>
           
@@ -338,9 +339,17 @@ async function loadMintedSfts(){
                     <MintedNFT uri={nft.image} id={nft.id} name={nft.name}/>
                   </div>
                 ))
+                
               }
 
-              
+              {
+                mintedSfts.map((sft, i) => (
+                  <div key={i} className="border shadow rounded-xl overflow-hidden">
+                    <MintedSFT uri={sft.image} id={sft.id} name={sft.name} balance={sft.balance}/>
+                  </div>
+                ))
+                
+              }
             </div>
           </div>
         </div>
@@ -365,6 +374,14 @@ async function loadMintedSfts(){
                 ownedNfts.map((nft, i) => (
                   <div key={i} className="border shadow rounded-xl overflow-hidden">
                     <OwnedNFT uri={nft.image} id={nft.id} name={nft.name}/>
+                  </div>
+                ))
+              }
+
+              {
+                ownedSfts.map((nft, i) => (
+                  <div key={i} className="border shadow rounded-xl overflow-hidden">
+                    <OwnedSFT uri={nft.image} id={nft.id} name={nft.name} balance={nft.balance}/>
                   </div>
                 ))
               }

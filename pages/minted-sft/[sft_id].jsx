@@ -2,37 +2,39 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useEffect, useState, useContext } from 'react';
 
-import { ShowcaseNFT } from '../../components/Cards/NFT';
+import { ShowcaseSFT } from '../../components/Cards/SFT';
 
 import { MetamaskContext } from "../../context/MetamaskContext";
 
-export default function MintedNFT() {
+export default function MintedSFT() {
 
-    const { nftContract } = useContext(MetamaskContext);
+    const { account, sftContract } = useContext(MetamaskContext);
 
-    const [nft, setNFT] = useState({});
+    const [sft, setSFT] = useState({});
     
     const router = useRouter();
 
     useEffect(() => {
 
-        loadNFT();
+        loadSFT();
 
     }, [])    
 
 
-    async function loadNFT(){
+    async function loadSFT(){
 
-        const id = router.query.nft_id.toString()
+        const id = router.query.sft_id.toString()
         
         if(id <= 0) return 
 
         
-        const tokenURI = await nftContract.tokenURI(id);
+        const tokenURI = await sftContract.tokenURI(id);
 
         const metadata = await axios.get(tokenURI);
 
-        setNFT(prev => {
+        const balance = await sftContract.balanceOf(account, id);
+
+        setSFT(prev => {
 
             return {
                 id: id,
@@ -40,7 +42,9 @@ export default function MintedNFT() {
                 image: metadata.data.image,
                 type: metadata.data.type,
                 desc: metadata.data.description,
-                tokenURI
+                tokenURI,
+                balance: parseInt(balance._hex, 16)
+
             }
 
 
@@ -50,12 +54,12 @@ export default function MintedNFT() {
     }
 
     
-    async function burnNFT(){
+    async function burnSFT(){
      
     try {    
-        const id = router.query.nft_id.toString();    
+        const id = router.query.sft_id.toString();
         
-        const transaction = await nftContract.burn(id);
+        const transaction = await sftContract.burn(id);
 
         const _transaction = await transaction.wait();
 
@@ -81,17 +85,17 @@ export default function MintedNFT() {
 
     } 
 
-    function listNFT(nft){
-        if(!nft) return;
+    function listSFT(sft){
+        if(!sft) return;
 
-        router.push(`/list-nft?id=${nft.id}&tokenURI=${nft.tokenURI}`);
+        router.push(`/list-sft?id=${sft.id}&tokenURI=${sft.tokenURI}`);
 
     }
 
-    function editNFT(nft){
-        if(!nft) return;
+    function editSFT(sft){
+        if(!sft) return;
 
-        router.push(`/edit-nft?id=${nft.id}&tokenURI=${nft.tokenURI}`);
+        router.push(`/edit-sft?id=${sft.id}&tokenURI=${sft.tokenURI}`);
 
     }
 
@@ -99,27 +103,27 @@ export default function MintedNFT() {
         <><div className='w-full h-full gradient-bg-sec '>
             <div className='flex flex-col h-full w-full p-12 gap-12 white-glassmorphism'>
             <div className='flex flex-col md:flex-row w-full my-auto justify-around'>
-            <ShowcaseNFT id={nft.id} uri={nft.image} name={nft.name} />
+            <ShowcaseSFT id={sft.id} uri={sft.image} name={sft.name} balance={sft.balance}/>
             <div className='flex flex-col  w-[50%] gap-6 py-12 md:py-0'>
-            <span className='text-9xl'><h1>{nft.name}</h1></span>
-            <span className='text-4xl text-gray-600'><h1>{nft.type}</h1></span>
-            <span className='text-xl'><p>{nft.desc}</p></span>
+            <span className='text-9xl'><h1>{sft.name}</h1></span>
+            <span className='text-4xl text-gray-600'><h1>{sft.type}</h1></span>
+            <span className='text-xl'><p>{sft.desc}</p></span>
             </div>
             </div>
             <div className='flex flex-row pb-4 gap-6 mx-auto'>
                 <button
-                onClick={burnNFT}
+                onClick={burnSFT}
                 className='h-12 w-20 tracking-wide rounded-lg bg-black text-white hover:bg-white hover:text-black hover:border-2 hover:border-black'>
                     Burn
                 </button>
 
                 <button
-                onClick={() => listNFT(nft)}
+                onClick={() => listSFT(sft)}
                 className='bg-black h-12 w-20 tracking-wide rounded-lg text-white hover:bg-white hover:text-black hover:border-2 hover:border-black'>
                     List
                 </button>
                 <button
-                onClick={() => editNFT(nft)}
+                onClick={() => editSFT(sft)}
                 className='bg-black h-12 w-20 tracking-wide rounded-lg text-white hover:bg-white hover:text-black hover:border-2 hover:border-black'>
                     Edit
                 </button>
