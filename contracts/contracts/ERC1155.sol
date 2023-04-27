@@ -544,13 +544,12 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
 
 
     function burn(
-        address account,
         uint256 id,
         uint256 value
     ) public nonReentrant virtual {
-        require( msg.sender == _minters[id] && account == _minters[id], "ERR-1155: caller is not the minter.");
+        require( msg.sender == _minters[id], "ERR-1155: caller is not the minter.");
 
-        _burn(account, id, value);
+        _burn(msg.sender, id, value);
     }
 
     /**
@@ -558,7 +557,6 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
      */
 
     function burnBatch(
-        address account,
         uint256[] memory ids,
         uint256[] memory values
     ) public nonReentrant virtual {
@@ -566,10 +564,10 @@ contract ERC1155 is  ERC165, IERC1155, IERC1155MetadataURI, ReentrancyGuard  {
 
         uint256 length = ids.length;
         for(uint i; i<length; i++){
-            require( msg.sender == _minters[ids[i]] && account == _minters[ids[i]], "ERR-1155: caller is not the minter.");
+            require( msg.sender == _minters[ids[i]] , "ERR-1155: caller is not the minter.");
         }
 
-        _burnBatch(account, ids, values);
+        _burnBatch(msg.sender, ids, values);
     }
 
 

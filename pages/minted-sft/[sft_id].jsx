@@ -4,6 +4,9 @@ import { useEffect, useState, useContext } from 'react';
 
 import { ShowcaseSFT } from '../../components/Cards/SFT';
 
+import { IoIosArrowBack } from 'react-icons/io';
+
+
 import { MetamaskContext } from "../../context/MetamaskContext";
 
 export default function MintedSFT() {
@@ -11,6 +14,10 @@ export default function MintedSFT() {
     const { account, sftContract } = useContext(MetamaskContext);
 
     const [sft, setSFT] = useState({});
+
+    const [burning, selectBurning] = useState(false);
+
+    const [value, setValue] = useState(0);
     
     const router = useRouter();
 
@@ -54,12 +61,15 @@ export default function MintedSFT() {
     }
 
     
-    async function burnSFT(){
+    async function burnSFT(value){
      
-    try {    
+    try {
+        
+        const amount = value.toString();
+
         const id = router.query.sft_id.toString();
         
-        const transaction = await sftContract.burn(id);
+        const transaction = await sftContract.burn(id, amount);
 
         const _transaction = await transaction.wait();
 
@@ -67,7 +77,14 @@ export default function MintedSFT() {
 
         if(_transaction){
             alert("Burn Successful");
-            router.push('/user');
+            selectBurning(false);
+
+            setSFT(prev => {
+                return {
+                    ...prev,
+                    balance: prev.balance - value
+                }
+            })
         }
 
         }
@@ -78,9 +95,10 @@ export default function MintedSFT() {
                 return;
               }
 
-            if(error.error.code === -32603){
+            if(error.code === -32603){
                 return alert("You've minted this token but you are no longer the owner.");
             }  
+
         }
 
     } 
@@ -88,14 +106,14 @@ export default function MintedSFT() {
     function listSFT(sft){
         if(!sft) return;
 
-        router.push(`/list-sft?id=${sft.id}&tokenURI=${sft.tokenURI}`);
+        router.push(`/list-sft?id=${sft.id}&tokenURI=${sft.tokenURI}&balance=${sft.balance}`);
 
     }
 
     function editSFT(sft){
         if(!sft) return;
 
-        router.push(`/edit-sft?id=${sft.id}&tokenURI=${sft.tokenURI}`);
+        router.push(`/edit-sft?id=${sft.id}&tokenURI=${sft.tokenURI}&balance=${sft.balance}`);
 
     }
 
@@ -110,9 +128,54 @@ export default function MintedSFT() {
             <span className='text-xl'><p>{sft.desc}</p></span>
             </div>
             </div>
-            <div className='flex flex-row pb-4 gap-6 mx-auto'>
+           {
+            burning? 
+            (
+                <div className='flex flex-row pb-8 gap-6 justify-center items-center'>
+                
+                <button 
+                  className="w-6 h-6 bg-[#404040] opacity-60 hover:opacity-100 shadow rounded-full"      
+                  
+                  onClick={() => selectBurning(false)}
+                  
+                  ><IoIosArrowBack className='font-bold text-white mx-auto w-5 h-5'/></button>
+
+                <input 
+                type='range'
+                min={0}
+                max={sft.balance}
+                step={1}
+                defaultValue={0}
+                value={value}
+
+                
+
+                onChange={e => setValue(e.target.value)}
+                
+                />
+
+                <div className='flex justify-center items-center gap-2 h-8 w-32 text-white bg-gray-500 rounded-md hover:bg-red-500'
+
+                onClick={() => burnSFT(value)}
+                
+                >
+                
+                <div className='w-[20%]'>
+                <p>{value}</p>
+                </div>
+
+                <div className='h-[80%] w-0.5 bg-white'></div>
+
+                <p>Burn</p>
+                </div>
+ 
+                </div>
+
+            ):
+            (
+                <div className='flex flex-row pb-4 gap-6 mx-auto'>
                 <button
-                onClick={burnSFT}
+                onClick={() => selectBurning(true)}
                 className='h-12 w-20 tracking-wide rounded-lg bg-black text-white hover:bg-white hover:text-black hover:border-2 hover:border-black'>
                     Burn
                 </button>
@@ -127,7 +190,10 @@ export default function MintedSFT() {
                 className='bg-black h-12 w-20 tracking-wide rounded-lg text-white hover:bg-white hover:text-black hover:border-2 hover:border-black'>
                     Edit
                 </button>
-            </div>
+ 
+                </div>
+            )
+           }
         </div>
         </div>
         </>

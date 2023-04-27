@@ -2,12 +2,10 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useEffect, useState, useContext } from 'react';
 
-import { ShowcaseNFT } from '../components/Cards/NFT';
-import { ViewEditNFT } from '../components/Cards/DetailView';
+import { ShowcaseSFT } from '../components/Cards/SFT';
+import { ViewEditSFT } from '../components/Cards/DetailView';
 
 import { MetamaskContext } from "../context/MetamaskContext";
-import { nftAddress, marketplaceaddress } from '../config';
-import { ethers } from 'ethers';
 
 import { create as ipfsClient } from 'ipfs-http-client';
 
@@ -25,27 +23,27 @@ const auth =
 
 
 
-export default function EditNFT() {
+export default function EditSFT() {
 
-    const { nftContract } = useContext(MetamaskContext);
+    const { sftContract } = useContext(MetamaskContext);
 
     const [id, setId] = useState(null);
     const [fileUrl, setFileUrl] = useState(null);
-    const [formInput, updateFormInput] = useState({name: '', description: '', type: '', supply:1 })
+    const [formInput, updateFormInput] = useState({name: '', description: '', type: '', supply:0 })
     const [loading, setLoading] = useState(false);
     
     const router = useRouter();
 
     useEffect(() => {
 
-        loadNFT();
+        loadSFT();
 
     }, [])    
 
 
-    async function loadNFT(){
+    async function loadSFT(){
 
-        const {id, tokenURI} = router.query;
+        const {id, tokenURI,balance} = router.query;
         
         if(id <= 0) return 
 
@@ -54,6 +52,7 @@ export default function EditNFT() {
         setFileUrl(metadata.data.image);
 
         const _id = id.toString();
+        console.log(metadata.data.supply);
 
         setId(_id);
 
@@ -98,15 +97,14 @@ export default function EditNFT() {
        
       }
     
-      async function saveNFT(){
-        // saves the NFT on ipfs
+      async function saveSFT(){
+        // saves the SFT on ipfs
     
         let {name, description, type, supply} = formInput;
     
         if(!name || !description || !fileUrl) return alert("Please enter details !");
   
-        type = "ERC721";
-        supply = 1;
+        type = "ERC1155";
   
         const data = JSON.stringify({
           name,description, image: fileUrl,type,supply
@@ -117,21 +115,21 @@ export default function EditNFT() {
           const added = await client.add(data);
   
           const url = `https://ipfs.io/ipfs/${added.path}`;
-          createNFT(url);
+          createSFT(url);
           
         } catch (error) {
             console.log(error);
         }
       }
     
-      async function createNFT(url){
+      async function createSFT(url){
 
     
         try {
 
             if(!id) return;
         
-        let transaction = await nftContract.updateTokenURI(id, url);
+        let transaction = await sftContract.updateTokenURI(id, url);
   
         let tx = await transaction.wait();
   
@@ -160,7 +158,7 @@ export default function EditNFT() {
             <div className='flex flex-col gap-24 md:flex-row md:gap-0 w-full my-auto justify-around items-center'>
             
             <div className=''>
-            <ViewEditNFT 
+            <ViewEditSFT 
             
             name={formInput.name} 
             nameChangeHandler={e => updateFormInput({...formInput, name: e.target.value})}
@@ -174,7 +172,7 @@ export default function EditNFT() {
             
             loading={loading} 
             
-            editNFTHandler={saveNFT}
+            editSFTHandler={saveSFT}
 
             closeHandler={() => router.back()}
             
@@ -182,7 +180,7 @@ export default function EditNFT() {
             </div>
             
             <div className=''>
-            <ShowcaseNFT id={id} uri={fileUrl} name={formInput.name} />
+            <ShowcaseSFT id={id} uri={fileUrl} name={formInput.name} balance={formInput.supply} />
             </div>
             </div>
         </div>

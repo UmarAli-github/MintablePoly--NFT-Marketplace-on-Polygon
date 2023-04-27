@@ -206,6 +206,53 @@ async function loadMintedSfts(){
 
  } 
 
+ async function loadListedSfts(){
+
+  try {
+    setLoading(true);
+
+    let data = await marketplaceContract.fetchSFTsListedByUser();
+
+    const items = await Promise.all(data.map( async i => {
+
+      const uri = await sftContract.tokenURI(i.tokenId);
+
+
+      const metadata = await axios.get(uri);
+
+      const _price = ethers.utils.formatEther(i.price).toString().slice(0,4);
+
+      let item = {
+        id: i.tokenId.toNumber(),
+        market: i.SFT_MarketItemId.toNumber(), 
+        price: _price,
+        name: metadata.data.name,
+        image: metadata.data.image,
+        type: metadata.data.type,
+        supply: parseInt(i.supply._hex, 16)
+      }
+
+      return item;
+
+    }));
+    console.log(items);
+    
+
+    setListedSfts(prev => items);
+    setLoading(false);
+
+
+
+  }
+  catch(e){
+    setLoading(false);
+    console.log(e);
+  }
+
+
+ } 
+
+
  async function loadListedNfts(){
 
   try {
@@ -265,6 +312,7 @@ async function loadMintedSfts(){
  useEffect(() =>{
 
   loadListedNfts();
+  loadListedSfts();
 
  }, [showListed])
 
@@ -322,7 +370,7 @@ async function loadMintedSfts(){
         { 
         showMinted? 
         
-        loading || !mintedNfts.length? 
+        loading && (!mintedNfts.length || !mintedSfts.length)? 
         (<div className='flex w-full h-full items-center justify-center'>
         <Loader/> 
         </div>):
@@ -359,7 +407,7 @@ async function loadMintedSfts(){
       { 
         showOwned? 
         
-        loading || !ownedNfts.length? 
+        loading && (!ownedNfts.length || !ownedSfts.length)? 
         (<div className='flex w-full h-full items-center justify-center'>
         <Loader/> 
         </div>):
@@ -397,7 +445,7 @@ async function loadMintedSfts(){
 { 
         showListed? 
         
-        loading || !listedNfts.length? 
+        loading && (!listedNfts.length || !listedSfts.length)? 
         (<div className='flex w-full h-full items-center justify-center'>
         <Loader/> 
         </div>):
@@ -412,6 +460,14 @@ async function loadMintedSfts(){
                 listedNfts.map((nft, i) => (
                   <div key={i} className="border shadow rounded-xl overflow-hidden">
                     <ListedNFT uri={nft.image} id={nft.id} name={nft.name} price={nft.price} market={nft.market}/>
+                  </div>
+                ))
+              }
+
+              {
+                listedSfts.map((sft, i) => (
+                  <div key={i} className="border shadow rounded-xl overflow-hidden">
+                    <ListedSFT uri={sft.image} id={sft.id} name={sft.name} price={sft.price} market={sft.market} supply={sft.supply}/>
                   </div>
                 ))
               }
