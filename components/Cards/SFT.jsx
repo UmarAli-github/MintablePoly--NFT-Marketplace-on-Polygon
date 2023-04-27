@@ -126,6 +126,10 @@ export function ListedSFT(props){
     const router = useRouter();
 
     return(
+        <div className='relative'>
+        <div className="h-8 w-8 bg-yellow-500 text-white flex items-center justify-center rounded-full absolute top-0 right-0">
+        {props.supply}
+        </div>
         <div className='flex mx-auto w-[150px] h-[150px] blue-shadow justify-center'
 
         onClick={() => router.push(`/listed-sft/${props.id}?market=${props.market}&price=${props.price}`)}
@@ -145,6 +149,7 @@ export function ListedSFT(props){
             
             </div>
         </div>
+        </div>
     )
 }
 
@@ -153,6 +158,10 @@ export function BuySFT(props){
     const router = useRouter();
 
     return(
+        <div className='relative'>
+        <div className="h-8 w-8 bg-yellow-500 text-white flex items-center justify-center rounded-full absolute top-0 right-0">
+        {props.supply}
+        </div>
         <div className='flex mx-auto w-[150px] h-[150px] blue-shadow justify-center'
 
         onClick={() => router.push(`/buy-sft/${props.id}?market=${props.market}&price=${props.price}&seller=${props.seller}`)}
@@ -171,6 +180,7 @@ export function BuySFT(props){
             </div>
             
             </div>
+        </div>
         </div>
     )
 }

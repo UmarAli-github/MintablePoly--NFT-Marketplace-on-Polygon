@@ -2,39 +2,51 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useEffect, useState, useContext } from 'react';
 
-import { ShowcaseNFT } from '../components/Cards/NFT';
-import {DetailViewNFT } from '../components/Cards/DetailView';
+import { ShowcaseSFT } from '../components/Cards/SFT';
+import {DetailViewSFT } from '../components/Cards/DetailView';
 
 import { MetamaskContext } from "../context/MetamaskContext";
-import { nftAddress, marketplaceaddress } from '../config';
+import { sftAddress } from '../config';
 import { ethers } from 'ethers';
 
-export default function MintedNFT() {
+export default function MintedSFT() {
 
     const { marketplaceContract } = useContext(MetamaskContext);
 
-    const [nft, setNFT] = useState({});
+    const [sft, setSFT] = useState({});
     const [price, setPrice] = useState(null);
+
+    const [value, setValue] = useState(0);
     
     const router = useRouter();
 
     useEffect(() => {
 
-        loadNFT();
+        loadSFT();
 
     }, [])    
 
 
-    async function loadNFT(){
+    function valueHandler(event){
 
-        const {id, tokenURI} = router.query;
+        const _value = event.target.value;
+
+        setValue(_value);
+        console.log(value);
+
+    }
+
+
+    async function loadSFT(){
+
+        const {id, tokenURI, balance} = router.query;
         
         if(id <= 0) return 
 
 
         const metadata = await axios.get(tokenURI);
 
-        setNFT(prev => {
+        setSFT(prev => {
 
             return {
                 id: id,
@@ -42,7 +54,8 @@ export default function MintedNFT() {
                 image: metadata.data.image,
                 type: metadata.data.type,
                 desc: metadata.data.description,
-                tokenURI
+                tokenURI,
+                balance
             }
 
 
@@ -58,19 +71,23 @@ export default function MintedNFT() {
 
     }
 
-    async function listNFT(nft){
+    async function listSFT(sft){
 
      try {   
 
-        if(!nft) return; 
+        if(!sft) return; 
         if(!price) return alert("Please set a price first.");
+        if(!value) return alert("Please set a value first.");
 
-        const _id = nft.id.toString();
-        const _price = price.toString();    
+
+        const _id = sft.id.toString();
+        const _price = price.toString();
+        const _value = value.toString();
+
         
         const fee = await marketplaceContract.getListingFee();
 
-        const transaction = await marketplaceContract.listNFT(nftAddress, _id, ethers.utils.parseEther(_price), {value: fee});
+        const transaction = await marketplaceContract.listSFT(sftAddress, _id, ethers.utils.parseEther(_price), _value, {value: fee});
         
         const tx = await transaction.wait();
 
@@ -87,6 +104,7 @@ export default function MintedNFT() {
         if(error.code === 4001){
             return;
         }
+        
       if(error.error.code === -32603){
             return alert("You've minted this token but you are no longer the owner.");
         }
@@ -100,9 +118,9 @@ export default function MintedNFT() {
         <><div className='w-full h-screen gradient-bg-sec '>
             <div className='flex flex-col h-full w-full p-12 gap-12 justify-center items-center white-glassmorphism'>
             <div className='flex flex-col gap-24 md:flex-row md:gap-0 w-full my-auto justify-around'>
-            <DetailViewNFT name={nft.name} description={nft.desc} priceHandler={e => setPriceHandler(e)} listNFTHandler={() => listNFT(nft)} /> 
+            <DetailViewSFT name={sft.name} description={sft.desc} balance={sft.balance} priceHandler={e => setPriceHandler(e)} value={value} valueHandler={e => valueHandler(e)} listSFTHandler={() => listSFT(sft)} /> 
             
-            <ShowcaseNFT id={nft.id} uri={nft.image} name={nft.name} />
+            <ShowcaseSFT id={sft.id} uri={sft.image} name={sft.name} balance={sft.balance}/>
             </div>
         </div>
         </div>

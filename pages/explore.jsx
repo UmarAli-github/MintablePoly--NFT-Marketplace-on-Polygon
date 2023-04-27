@@ -10,7 +10,9 @@ import { MetamaskContext } from '../context/MetamaskContext';
 import Footer from '../components/Footer/Footer';
 import Loader from '../components/Loader';
 
-import { BuyNFT } from '../components/Cards/NFT';
+import {BuyNFT} from '../components/Cards/NFT';
+
+import { BuySFT} from '../components/Cards/SFT';
 
 
 
@@ -22,12 +24,15 @@ export default function User() {
   
   const [listedNfts, setListedNfts] = useState([]);  
 
+  const [listedSfts, setListedSfts] = useState([]); 
+
   const router = useRouter();
 
 
   useEffect(() => {
 
     loadListedNfts();
+    loadListedSfts();
    },[])
    
 
@@ -78,10 +83,59 @@ export default function User() {
  } 
 
 
+ async function loadListedSfts(){
+
+  try {
+    setLoading(true);
+
+    let data = await marketplaceContract.fetchSFTsListedByUser();
+
+    const items = await Promise.all(data.map( async i => {
+
+      const uri = await sftContract.tokenURI(i.tokenId);
+
+
+      const metadata = await axios.get(uri);
+
+      const _price = ethers.utils.formatEther(i.price).toString().slice(0,4);
+
+      let item = {
+        id: i.tokenId.toNumber(),
+        market: i.SFT_MarketItemId.toNumber(), 
+        price: _price,
+        name: metadata.data.name,
+        image: metadata.data.image,
+        type: metadata.data.type,
+        supply: parseInt(i.supply._hex, 16),
+        seller: i.seller
+      }
+
+      return item;
+
+    }));
+    console.log(items);
+    
+
+    setListedSfts(prev => items);
+    setLoading(false);
+
+
+
+  }
+  catch(e){
+    setLoading(false);
+    console.log(e);
+  }
+
+
+ } 
+
+
+
   return (
     <>
      <div className="h-screen gradient-bg-sec">
-       { loading || !listedNfts.length? 
+       { loading && (!listedSfts.length || !listedNfts.length)? 
             (<div className='flex w-full h-full items-center justify-center'>
             <Loader/> 
             </div>):
@@ -94,6 +148,14 @@ export default function User() {
                     listedNfts.map((nft, i) => (
                       <div key={i} className="border shadow rounded-xl overflow-hidden">
                         <BuyNFT uri={nft.image} id={nft.id} name={nft.name} price={nft.price} seller={nft.seller} market={nft.market}/>
+                      </div>
+                    ))
+                  }
+
+{
+                    listedSfts.map((sft, i) => (
+                      <div key={i} className="border shadow rounded-xl overflow-hidden">
+                        <BuySFT uri={sft.image} id={sft.id} name={sft.name} price={sft.price} seller={sft.seller} market={sft.market} supply={sft.supply}/>
                       </div>
                     ))
                   }
