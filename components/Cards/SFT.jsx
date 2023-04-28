@@ -132,7 +132,7 @@ export function ListedSFT(props){
         </div>
         <div className='flex mx-auto w-[150px] h-[150px] blue-shadow justify-center'
 
-        onClick={() => router.push(`/listed-sft/${props.id}?market=${props.market}&price=${props.price}`)}
+        onClick={() => router.push(`/listed-sft/${props.id}?market=${props.market}&price=${props.price}&supply=${props.supply}`)}
         >
             <div className={`w-full h-full bg-cover flex flex-col justify-between rounded-xl shadow-2xl`}
                  style={{backgroundImage: `url(${props.uri})`}}
