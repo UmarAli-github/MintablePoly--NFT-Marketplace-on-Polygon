@@ -88,7 +88,7 @@ export default function User() {
   try {
     setLoading(true);
 
-    let data = await marketplaceContract.fetchSFTsListedByUser();
+    let data = await marketplaceContract.fetchListedSFTs();
 
     const items = await Promise.all(data.map( async i => {
 
