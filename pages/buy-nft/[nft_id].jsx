@@ -15,8 +15,6 @@ export default function BuyNFT() {
     const { account, marketplaceContract, nftContract } = useContext(MetamaskContext);
 
     const [nft, setNFT] = useState({});
-
-    const [seller, setSeller] = useState(null);
     
     const router = useRouter();
 
