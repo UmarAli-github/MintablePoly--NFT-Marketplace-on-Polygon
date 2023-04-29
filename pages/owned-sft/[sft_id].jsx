@@ -59,7 +59,7 @@ export default function OwnedSFTPage() {
     function listSFT(sft){
         if(!sft) return
 
-        router.push(`/list-sft?id=${sft.id}&tokenURI=${sft.tokenURI}`);
+        router.push(`/list-sft?id=${sft.id}&tokenURI=${sft.tokenURI}&balance=${sft.balance}`);
 
     }
 
