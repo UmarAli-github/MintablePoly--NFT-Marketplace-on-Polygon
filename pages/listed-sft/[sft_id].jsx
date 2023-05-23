@@ -10,6 +10,8 @@ import { IoIosArrowBack } from 'react-icons/io';
 
 import { sftAddress } from '../../config';
 
+import SFTOwnershipTrackingTable from '../../components/Tables/SFTOwnershipTracking';
+
 export default function ListedSFT() {
 
     const { marketplaceContract, sftContract } = useContext(MetamaskContext);
@@ -157,6 +159,10 @@ export default function ListedSFT() {
             )
            }
             
+        </div>
+
+        <div className='flex justify-center py-2'>
+                <SFTOwnershipTrackingTable id={sft.id}/>
         </div>
         </div>
         </>

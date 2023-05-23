@@ -8,6 +8,8 @@ import SocialShare from '../../components/SocialShare';
 
 import { MetamaskContext } from "../../context/MetamaskContext";
 
+import NFTOwnershipTrackingTable from '../../components/Tables/NFTOwnershipTracking';
+
 export default function OwnedNFTPage() {
 
     const { nftContract } = useContext(MetamaskContext);
@@ -80,6 +82,9 @@ export default function OwnedNFTPage() {
                 </button>
                  
             </div>
+        </div>
+        <div className='flex justify-center py-2'>
+                <NFTOwnershipTrackingTable id={nft.id}/>
         </div>
         </div>
         </>

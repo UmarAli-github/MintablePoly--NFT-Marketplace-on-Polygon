@@ -107,6 +107,10 @@ export default function Home() {
       
       setReceipt(el =>({...receiptObj}));
       setTx(true);
+
+      updateFormInput( pre => {
+        return {name: '', description: '', type: '', supply:1 }
+      })
         
       } catch (error) {
         
@@ -164,6 +168,10 @@ export default function Home() {
       
       setReceipt(el =>({...receiptObj}));
       setTx(true);
+
+      updateFormInput( pre => {
+        return {name: '', description: '', type: '', supply:1 }
+      })
         
       } catch (error) {
         
@@ -248,7 +256,7 @@ export default function Home() {
                   setFileUrl(null);
                   setFormType("erc1155")}}
                 >
-                ERC-1155
+                Token Collection - SFT
               </button>
   
               <button className='font-bold text-2xl tracking-widest mt-4 bg-black hover:bg-purple-400 hover:scale-105 text-white rounded p-4 shadow-lg'
@@ -258,7 +266,7 @@ export default function Home() {
                 setFileUrl(null);
                 setFormType("erc721")}}
               >
-                ERC-721
+                Single Token - NFT
             </button>
             </div>
           )}

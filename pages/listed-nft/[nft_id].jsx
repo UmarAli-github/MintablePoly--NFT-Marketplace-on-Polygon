@@ -7,7 +7,7 @@ import { ShowcaseNFT } from '../../components/Cards/NFT';
 import { MetamaskContext } from "../../context/MetamaskContext";
 
 import { nftAddress } from '../../config';
-import { ethers } from 'ethers';
+import NFTOwnershipTrackingTable from '../../components/Tables/NFTOwnershipTracking';
 
 
 export default function ListedNFT() {
@@ -104,7 +104,9 @@ export default function ListedNFT() {
                     Unlist
                 </button>
             </div>
-            
+            <div className='flex justify-center py-2'>
+                <NFTOwnershipTrackingTable id={nft.id}/>
+            </div>
         </div>
         </div>
         </>

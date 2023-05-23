@@ -87,11 +87,10 @@ export default function MintedNFT() {
         if(error.code === 4001){
             return;
         }
-      if(error.error.code === -32603){
-            return alert("You've minted this token but you are no longer the owner.");
-        }
-  
-        console.log(error);
+     if(error){
+           return alert(error.message);
+      }
+        
      }
 
     }

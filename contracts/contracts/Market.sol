@@ -59,25 +59,20 @@ contract Market is ReentrancyGuard, Ownable, IERC721Receiver, IERC1155Receiver {
     mapping(uint256 => mapping(address => uint256)) private sftToMarketId;
 
     //Events for market items creation
-    event NFT_MarketItem_Created(
-        uint256 indexed NFT_MarketItemId,
-        address nftContract,
+    event NFT_MarketItem_Sale(
+        uint256 NFT_MarketItemId,
         uint256 indexed tokenId,
-        address minter,
-        address seller,
-        address indexed owner,
-        uint256 price,
-        bool sold
+        address indexed to,
+        address indexed from,
+        uint256 price
     );
 
-    event SFT_MarketItem_Created(
+    event SFT_MarketItem_Sale(
         
-        uint256 indexed SFT_MarketItemId,
-        address sftContract,
+        uint256 SFT_MarketItemId,
         uint256 indexed tokenId,
-        address minter,
-        address seller,
-        address indexed owner,
+        address indexed to,
+        address indexed from,
         uint256 price,
         uint256 supply
 
@@ -216,16 +211,7 @@ contract Market is ReentrancyGuard, Ownable, IERC721Receiver, IERC1155Receiver {
 
         nft.safeTransferFrom(msg.sender, address(this), _tokenId);
 
-        emit NFT_MarketItem_Created(
-            current,
-            _nftContract,
-            _tokenId,
-            _minter,
-            msg.sender,
-            address(0),
-            _price,
-            false
-        );
+    
 
         return current;
     }
@@ -288,16 +274,7 @@ contract Market is ReentrancyGuard, Ownable, IERC721Receiver, IERC1155Receiver {
 
         sft.safeTransferFrom(msg.sender, address(this), _tokenId, _supply, "0x");
 
-        emit SFT_MarketItem_Created(
-            current,
-            _sftContract,
-            _tokenId,
-            _minter,
-            msg.sender,
-            address(0),
-            _price,
-            _supply
-        );
+       
 
         return current;
     }
@@ -461,6 +438,14 @@ contract Market is ReentrancyGuard, Ownable, IERC721Receiver, IERC1155Receiver {
 
         payable(owner()).transfer(_listingFee);
 
+        emit NFT_MarketItem_Sale(
+        item.NFT_MarketItemId,
+        tokenId,
+        msg.sender,
+        item.seller,
+        msg.value
+    );
+
         item.seller = payable(address(0));
     }
 
@@ -499,6 +484,15 @@ contract Market is ReentrancyGuard, Ownable, IERC721Receiver, IERC1155Receiver {
         );
 
         payable(owner()).transfer(_listingFee);
+
+        emit SFT_MarketItem_Sale(
+        item.SFT_MarketItemId,
+        tokenId,
+        msg.sender,
+        item.seller,
+        msg.value,
+        _supply
+    );
 
         if(item.supply == 0){
             item.seller = payable(address(0));
