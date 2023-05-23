@@ -20,6 +20,7 @@ export const MetamaskProvider = ({children}) => {
     const [marketplaceContract, setMarketplaceContract] = useState(null);
     const [nftContract, setNftContract] = useState(null);
     const [sftContract, setSftContract] = useState(null);
+    const [block, setBlock] = useState(0);
 
 
 
@@ -55,9 +56,12 @@ export const MetamaskProvider = ({children}) => {
         }
     };
 
-    function setupContractsWithSigner(){
+    async function setupContractsWithSigner(){
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const block_number = await provider.getBlockNumber();
+      setBlock(block_number);
+
       const signer = provider.getSigner()
       
       const marketcontract = new ethers.Contract(marketplaceaddress,market_abi,signer);
@@ -92,13 +96,13 @@ export const MetamaskProvider = ({children}) => {
           if(wallet._metamask.isUnlocked()){
     
            
-       //     const chainId = await wallet.request({method: 'eth_chainId'});
+            const chainId = await wallet.request({method: 'eth_chainId'});
             
             //Mumbai test net selection
-         //   if(chainId !== "0x13881"){
-           //   alert("Please change network to Mumbai.");
-             // addPolygon();
-            //}
+            if(chainId !== "0x13881"){
+              alert("Please change network to Mumbai.");
+              addPolygon();
+            }
     
               const accounts = await wallet.request({method:"eth_accounts"});
     
@@ -254,7 +258,7 @@ export const MetamaskProvider = ({children}) => {
       })
 
     return (
-    <MetamaskContext.Provider value={{connectWallet,account, wallet, marketplaceContract, nftContract, sftContract}}>
+    <MetamaskContext.Provider value={{connectWallet,account, wallet, marketplaceContract, nftContract, sftContract, block}}>
     {children}
     </MetamaskContext.Provider>
     )

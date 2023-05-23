@@ -11,6 +11,8 @@ import { IoIosArrowBack } from 'react-icons/io';
 import { sftAddress } from '../../config';
 import { ethers } from 'ethers';
 
+import SFTOwnershipTrackingTable from '../../components/Tables/SFTOwnershipTracking';
+
 
 export default function BuySFT() {
 
@@ -187,6 +189,10 @@ export default function BuySFT() {
            }
 
         </div>
+        </div>
+
+        <div className='flex justify-center py-2'>
+                <SFTOwnershipTrackingTable id={sft.id}/>
         </div>
         </div>
         </>

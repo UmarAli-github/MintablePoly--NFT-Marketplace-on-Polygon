@@ -9,6 +9,8 @@ import { IoIosArrowBack } from 'react-icons/io';
 
 import { MetamaskContext } from "../../context/MetamaskContext";
 
+import SFTOwnershipTrackingTable from '../../components/Tables/SFTOwnershipTracking';
+
 export default function MintedSFT() {
 
     const { account, sftContract } = useContext(MetamaskContext);
@@ -194,6 +196,9 @@ export default function MintedSFT() {
                 </div>
             )
            }
+        </div>
+        <div className='flex justify-center py-2'>
+                <SFTOwnershipTrackingTable id={sft.id}/>
         </div>
         </div>
         </>

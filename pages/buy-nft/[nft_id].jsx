@@ -9,6 +9,8 @@ import { MetamaskContext } from "../../context/MetamaskContext";
 import { nftAddress } from '../../config';
 import { ethers } from 'ethers';
 
+import NFTOwnershipTrackingTable from '../../components/Tables/NFTOwnershipTracking';
+
 
 export default function BuyNFT() {
 
@@ -115,6 +117,9 @@ export default function BuyNFT() {
                     Buy
                 </button>
             </div>
+        </div>
+        <div className='flex justify-center py-2'>
+                <NFTOwnershipTrackingTable id={nft.id}/>
         </div>
         </div>
         </>
