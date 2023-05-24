@@ -11,6 +11,11 @@ import { IoIosArrowBack } from 'react-icons/io';
 import { sftAddress } from '../../config';
 import { ethers } from 'ethers';
 
+import {SlArrowDown} from 'react-icons/sl';
+import {SlArrowUp} from 'react-icons/sl';
+import { BsListUl } from 'react-icons/bs';
+import {RiShareBoxLine} from 'react-icons/ri';
+
 import SFTOwnershipTrackingTable from '../../components/Tables/SFTOwnershipTracking';
 
 
@@ -23,6 +28,8 @@ export default function BuySFT() {
     const [buying, selectBuying] = useState(false);
 
     const [value, setValue] = useState(0);
+
+    const [showDescription, descriptionToggle] = useState(true);
     
     const router = useRouter();
 
@@ -121,22 +128,46 @@ export default function BuySFT() {
         <><div className='w-full max-h-full gradient-bg-sec '>
             <div className='flex flex-col h-full w-full p-12 gap-12 white-glassmorphism'>
             <div className='flex flex-col md:flex-row w-full my-auto justify-around'>
+            <div className='flex flex-col p-4 mx-14'>
             <ShowcaseSFT id={sft.id} uri={sft.image} name={sft.name} balance={sft.supply}/>
-            <div className='flex flex-col w-[50%] gap-6 py-12 md:py-0'>
-            <span className='text-9xl'><h1>{sft.name}</h1></span>
-            <span className='text-sm'><p>{sft.desc}</p></span>
-            <span className='text-md text-gray-600'><h1>Sold by {sft.seller}</h1> </span>
-            <span className='text-xl text-gray-600'><h1></h1> </span>
-            <span className='text-4xl text-gray-600'><h1>{sft.type}</h1></span>
-            <span className='text-4xl text-black'><h1><span className='text-4xl text-gray-600'></span>{sft._price} MATIC</h1> </span>
-            
+            <div className='min-w-full white-glassmorphism my-8 border border-gray-200 rounded-xl'>
+                <div className=' flex p-4 justify-between'>
+                    <div className='flex items-center gap-2'>
+                        <BsListUl size={20}/>
+                        <h1 className='text-lg'>Description</h1>
+                    </div>
+                    <div className='flex items-center gap-4'>
+                        <a target='_blank' href={sft.tokenURI}><RiShareBoxLine/></a> 
+                    {
+                        showDescription? 
+                        <SlArrowUp onClick={()=>descriptionToggle(false)}/>
+                        :
+                        <SlArrowDown onClick={()=>descriptionToggle(true)}/>
+                        
+                    }
+                    </div>
+                </div>
+                {showDescription?<hr/>:<div></div>}
+                <p className={showDescription?'font-lighter text-justify font-sans p-6 overflow-y-auto h-28':'hidden'}>{sft.desc}</p>
             </div>
             </div>
-            <div className='flex flex-row gap-6 mx-auto'>
-            {
+            <div className='flex flex-col w-full gap-14 md:py-0'>
+            <div className='w-full p-6 white-glassmorphism rounded-xl border border-gray-200'>
+            <h1 className='text-9xl p-4 overflow-x-auto'>{sft.name}</h1>
+            <p className='px-4'>Sold by <a className='font-sans text-purple-700 hover:underline' style={{cursor:"pointer"}} target='_blank' href={`https://mumbai.polygonscan.com/address/${sft.seller}`}>{String(sft.seller).substring(0,24)}...</a></p>
+            <hr className='w-full' />
+            <h1 className='p-4 text-4xl text-gray-600'>{sft.type}</h1>
+            </div>
+            <div className='w-full border border-gray-200 rounded-xl'>
+                <div className='flex flex-col gap-2 p-6'>
+                <span className='text-xl font-sans text-gray-600'><h1>Current price</h1></span>
+                <span className='text-4xl text-black'><h1>{sft._price} MATIC</h1> </span>
+                </div>
+                <hr className='w-full'/>
+                {
             buying? 
             (
-                <div className='flex flex-row pb-8 gap-6 justify-center items-center'>
+                <div className='flex flex-row p-10 gap-6 justify-center items-center'>
                 
                 <button 
                   className="w-6 h-6 bg-[#404040] opacity-60 hover:opacity-100 shadow rounded-full"      
@@ -162,6 +193,8 @@ export default function BuySFT() {
                 <div className='flex justify-center items-center gap-2 h-8 w-32 text-white bg-gray-500 rounded-md hover:bg-green-500'
 
                 onClick={() => buySFT(sft, value)}
+
+                style={{cursor:"pointer"}}
                 
                 >
                 
@@ -178,17 +211,19 @@ export default function BuySFT() {
 
             ):
             (
-                <div className='flex flex-row pb-4 gap-6 mx-auto'>
+                <div className='flex flex-row p-6 mx-auto'>
                 <button
                 onClick={() => buy()}
-                className='h-12 w-20 tracking-wide rounded-lg bg-black text-white hover:bg-white hover:text-black hover:border-2 hover:border-black'>
+                className='bg-black h-16 w-full tracking-wide rounded-lg text-white hover:bg-sky-500 hover:text-white tracking-lg'>
                     Buy now
                 </button>
                 </div>
             )
            }
-
-        </div>
+            </div>
+            </div>
+            </div>
+            
         </div>
 
         <div className='flex justify-center py-2'>

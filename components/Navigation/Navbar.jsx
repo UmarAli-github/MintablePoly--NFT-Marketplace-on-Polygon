@@ -41,7 +41,7 @@ export default function Navbar(props) {
         <a className='text-xl text-[#505050] tracking-wider'>Explore</a>
       </Link>
       <Link href='/user'>
-      <div className='w-[50px] h-[50px]'>
+      <div className='border rounded-full border-gray-800 w-[50px] h-[50px]'>
       <Blockie address={account}/>
       </div>
       </Link>
