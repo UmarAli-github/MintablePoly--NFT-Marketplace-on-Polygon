@@ -11,18 +11,18 @@ export default function SocialShare({ imageUrl, type }) {
                           title="Guys checkout this cool NFT I now own !!!"
                           hashtags={["NFT", "Web3", "ERC721"]}
       >
-        <TwitterIcon size={30} className="rounded-full"/>
+        <TwitterIcon size={25} className="rounded-full"/>
       </TwitterShareButton>
       <FacebookShareButton url={imageUrl}
                            quote="Guys checkout this cool NFT I now own !!!"
                            hashtag="NFT"
       >
-        <FacebookIcon size={30} className="rounded-full"/>
+        <FacebookIcon size={25} className="rounded-full"/>
       </FacebookShareButton>
       <RedditShareButton url={imageUrl}
                          title="Guys checkout this cool NFT I now own !!!"
       >
-        <RedditIcon size={30} className="rounded-full"/>
+        <RedditIcon size={25} className="rounded-full"/>
       </RedditShareButton>
     </div>
     ):
@@ -32,18 +32,18 @@ export default function SocialShare({ imageUrl, type }) {
                           title="Guys checkout this cool SFT I now own !!!"
                           hashtags={["SFT", "Web3", "ERC1155"]}
       >
-        <TwitterIcon size={30} className="rounded-full"/>
+        <TwitterIcon size={25} className="rounded-full"/>
       </TwitterShareButton>
       <FacebookShareButton url={imageUrl}
                            quote="Guys checkout this cool SFT I now own !!!"
                            hashtag="SFT"
       >
-        <FacebookIcon size={30} className="rounded-full"/>
+        <FacebookIcon size={25} className="rounded-full"/>
       </FacebookShareButton>
       <RedditShareButton url={imageUrl}
                          title="Guys checkout this cool SFT I now own !!!"
       >
-        <RedditIcon size={30} className="rounded-full"/>
+        <RedditIcon size={25} className="rounded-full"/>
       </RedditShareButton>
     </div>
     )

@@ -10,11 +10,20 @@ import { MetamaskContext } from "../../context/MetamaskContext";
 
 import NFTOwnershipTrackingTable from '../../components/Tables/NFTOwnershipTracking';
 
+
+import {SlArrowDown} from 'react-icons/sl';
+import {SlArrowUp} from 'react-icons/sl';
+import { BsListUl } from 'react-icons/bs';
+import {RiShareBoxLine} from 'react-icons/ri';
+
+
 export default function OwnedNFTPage() {
 
     const { nftContract } = useContext(MetamaskContext);
 
     const [nft, setNFT] = useState({});
+
+    const [showDescription, descriptionToggle] = useState(false);
     
     const router = useRouter();
 
@@ -66,21 +75,47 @@ export default function OwnedNFTPage() {
         <><div className='w-full max-h-full gradient-bg-sec '>
             <div className='flex flex-col h-full p-12 gap-12 white-glassmorphism'>
             <div className='flex flex-col md:flex-row w-full justify-around'>
+            <div className='flex flex-col w-[75%] p-4'>
             <ShowcaseNFT id={nft.id} uri={nft.image} name={nft.name} />
-            <div className='flex flex-col w-[50%] gap-6 py-12 md:py-0'>
-            <span className='text-9xl'><h1>{nft.name}</h1></span>
-            <span className='text-4xl text-gray-600'><h1>{nft.type}</h1></span>
-            <span className='text-md'>{nft.desc}</span>
-            <SocialShare imageUrl={nft.image} type={721}/>
+            <div className='min-w-full white-glassmorphism my-8 border border-gray-200 rounded-xl'>
+                <div className=' flex p-4 justify-between'>
+                    <div className='flex items-center gap-2'>
+                        <BsListUl size={20}/>
+                        <h1 className='text-lg'>Description</h1>
+                    </div>
+                    <div className='flex items-center gap-4'>
+                        <SocialShare imageUrl={nft.image} type={721}/>
+                        <a target='_blank' href={nft.tokenURI}><RiShareBoxLine/></a> 
+                    {
+                        showDescription? 
+                        <SlArrowUp onClick={()=>descriptionToggle(false)}/>
+                        :
+                        <SlArrowDown onClick={()=>descriptionToggle(true)}/>
+                        
+                    }
+                    </div>
+                </div>
+                {showDescription?<hr/>:<div></div>}
+                <p className={showDescription?'font-lighter text-justify font-sans p-6 overflow-y-auto h-28':'hidden'}>{nft.desc}</p>
             </div>
             </div>
-            <div className='flex flex-row pb-4 gap-6 mx-auto'>
+            <div className='flex flex-col w-full gap-14 md:py-0'>
+            <div className='w-full p-6 white-glassmorphism rounded-xl border border-gray-200'>
+            <h1 className='text-9xl p-4 overflow-x-auto'>{nft.name}</h1>
+            <hr className='w-full' />
+            <h1 className='p-4 text-4xl text-gray-600'>{nft.type}</h1>
+            </div>
+            <div className='w-full'>
+                <div className='p-14'>
                 <button
                 onClick={() => listNFT(nft)}
-                className='bg-black h-12 w-20 tracking-wide rounded-lg text-white hover:bg-white hover:text-black hover:border-2 hover:border-black'>
+                className='bg-black h-16 w-full tracking-wide rounded-lg text-white hover:bg-sky-500 hover:text-white tracking-lg'>
                     List
                 </button>
-                 
+                
+                </div>
+            </div>
+            </div>
             </div>
         </div>
         <div className='flex justify-center py-2'>
