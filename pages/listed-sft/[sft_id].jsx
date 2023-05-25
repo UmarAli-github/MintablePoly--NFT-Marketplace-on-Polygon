@@ -103,7 +103,7 @@ export default function ListedSFT() {
         <><div className='w-full max-h-full gradient-bg-sec '>
             <div className='flex flex-col h-full w-full p-12 gap-12 white-glassmorphism'>
             <div className='flex flex-col md:flex-row w-full my-auto justify-around'>
-            <div className='flex flex-col p-4 mx-14'>
+            <div className='flex flex-col w-[75%] p-4'>
             <ShowcaseSFT id={sft.id} uri={sft.image} name={sft.name} balance={sft.supply}/>
             <div className='min-w-full white-glassmorphism my-8 border border-gray-200 rounded-xl'>
                 <div className=' flex p-4 justify-between'>
