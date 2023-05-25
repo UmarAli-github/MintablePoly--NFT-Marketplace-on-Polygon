@@ -52,7 +52,6 @@ export default function EditSFT() {
         setFileUrl(metadata.data.image);
 
         const _id = id.toString();
-        console.log(metadata.data.supply);
 
         setId(_id);
 
